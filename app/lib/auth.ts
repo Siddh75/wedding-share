@@ -3,6 +3,19 @@ import GoogleProvider from 'next-auth/providers/google'
 import { SupabaseAdapter } from '@auth/supabase-adapter'
 import { supabase } from './supabase'
 
+// Extend NextAuth types
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      role: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
