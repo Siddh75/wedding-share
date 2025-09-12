@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
-        token.role = user.role || 'guest'
+        token.role = 'guest' // Default role, would need to be fetched from database
       }
       return token
     },
