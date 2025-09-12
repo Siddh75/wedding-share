@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { supabase } from '@/app/lib/supabase'
+import { supabase } from '@/app/lib/supabase-client'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 export default function EmailConfirmPage() {
