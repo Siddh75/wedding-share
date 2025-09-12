@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Find the user by token (which is the user ID)
     console.log('🔍 Looking up user with ID:', token)
-    const { data: user, error: userError } = await supabaseAdmin
+    let { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, email, email_confirmed')
       .eq('id', token)
