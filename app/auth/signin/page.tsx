@@ -55,7 +55,7 @@ export default function SignInPage() {
       console.error('Login error:', error)
       
       // Check if it's a confirmation error
-      if (error.message && error.message.includes('Email not confirmed')) {
+      if (error instanceof Error && error.message && error.message.includes('Email not confirmed')) {
         setConfirmationError(email)
         toast.error('Please confirm your email before signing in')
       } else {
