@@ -25,9 +25,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkSession = async () => {
     try {
       console.log('🔐 AuthProvider: Checking session...')
+      console.log('🔐 AuthProvider: Current URL:', window.location.href)
+      console.log('🔐 AuthProvider: Document cookies:', document.cookie)
+      
       const response = await fetch('/api/auth/session', {
         credentials: 'include', // Important: include cookies
       })
+      
+      console.log('🔐 AuthProvider: Session API response status:', response.status)
       const data = await response.json()
       console.log('🔐 AuthProvider: Session response:', data)
       
@@ -65,8 +70,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.success && result.user) {
         console.log('🔐 AuthProvider: Setting user:', result.user)
         setUser(result.user)
+        console.log('🔐 AuthProvider: User set, now checking session...')
         // Re-check session to ensure consistency
         await checkSession()
+        console.log('🔐 AuthProvider: Session check completed')
         return true
       }
       

@@ -59,10 +59,11 @@ export async function POST(request: NextRequest) {
           
           response.cookies.set('session-token', sessionData, {
             httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/' // Ensure cookie is available for all paths
+            path: '/', // Ensure cookie is available for all paths
+            domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
           })
 
           console.log('🔐 Login API (test user): Session cookie set successfully')
@@ -89,10 +90,11 @@ export async function POST(request: NextRequest) {
           
           response.cookies.set('session-token', sessionData, {
             httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/' // Ensure cookie is available for all paths
+            path: '/', // Ensure cookie is available for all paths
+            domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
           })
 
           console.log('🔐 Login API (fallback test user): Session cookie set successfully')
@@ -203,10 +205,11 @@ export async function POST(request: NextRequest) {
         
         response.cookies.set('session-token', sessionData, {
           httpOnly: true,
-          secure: process.env.NODE_ENV !== 'development',
+          secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
           maxAge: 60 * 60 * 24 * 7, // 7 days
-          path: '/' // Ensure cookie is available for all paths
+          path: '/', // Ensure cookie is available for all paths
+          domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
         })
 
         console.log('🔐 Login API: Session cookie set successfully')

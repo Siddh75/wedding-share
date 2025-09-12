@@ -29,7 +29,7 @@ export default function Header() {
   // Navigation items for non-authenticated users
   const publicNavigation = [
     { name: 'Home', href: '/', icon: Home },
-    { name: 'Pricing', href: '/pricing', icon: DollarSign },
+    // { name: 'Pricing', href: '/pricing', icon: DollarSign },
     { name: 'Demo', href: '/demo', icon: Play },
   ]
 
