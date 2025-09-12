@@ -28,11 +28,55 @@ export async function POST(request: NextRequest) {
     console.log('🔍 User lookup result:', { user, userError })
 
     if (userError || !user) {
-      console.error('❌ User not found:', userError)
-      return NextResponse.json(
-        { success: false, message: 'Invalid confirmation link' },
-        { status: 400 }
-      )
+      console.error('❌ User not found in users table:', userError)
+      
+      // Try to find the user in Supabase Auth and create them in our users table
+      console.log('🔍 Attempting to find user in Supabase Auth and create in users table...')
+      
+      try {
+        const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(token)
+        
+        if (authError || !authUser.user) {
+          console.error('❌ User not found in Supabase Auth either:', authError)
+          return NextResponse.json(
+            { success: false, message: 'Invalid confirmation link' },
+            { status: 400 }
+          )
+        }
+        
+        console.log('✅ Found user in Supabase Auth:', authUser.user.email)
+        
+        // Create user in our users table
+        const { data: newUser, error: createError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            id: authUser.user.id,
+            email: authUser.user.email!,
+            name: authUser.user.user_metadata?.name || authUser.user.email!.split('@')[0],
+            role: 'guest', // Default role
+            email_confirmed: false // Will be set to true below
+          })
+          .select('id, email, email_confirmed')
+          .single()
+        
+        if (createError) {
+          console.error('❌ Error creating user in users table:', createError)
+          return NextResponse.json(
+            { success: false, message: 'Failed to create user profile' },
+            { status: 500 }
+          )
+        }
+        
+        console.log('✅ User created in users table:', newUser)
+        user = newUser
+        
+      } catch (error) {
+        console.error('❌ Error during user creation process:', error)
+        return NextResponse.json(
+          { success: false, message: 'Invalid confirmation link' },
+          { status: 400 }
+        )
+      }
     }
 
     // Verify that the email matches (for security)

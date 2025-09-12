@@ -218,31 +218,7 @@ export async function POST(request: NextRequest) {
     // For non-invited users, create account directly but mark as unconfirmed
     console.log('🔐 Creating regular user account...')
     
-    // Create user record in our users table first (unconfirmed)
-    const { data: user, error: createError } = await supabaseAdmin
-      .from('users')
-      .insert({
-        email,
-        name,
-        role: invitationRole,
-        email_confirmed: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    if (createError) {
-      console.error('❌ Database error:', createError)
-      return NextResponse.json(
-        { success: false, message: 'Failed to create user account' },
-        { status: 500 }
-      )
-    }
-
-    console.log('✅ User created in database:', user)
-
-    // Create Supabase Auth user without email confirmation
+    // Create Supabase Auth user first to get the proper ID
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -255,8 +231,6 @@ export async function POST(request: NextRequest) {
 
     if (authError) {
       console.error('❌ Supabase Auth error:', authError)
-      // Clean up our user record if auth fails
-      await supabaseAdmin.from('users').delete().eq('id', user.id)
       return NextResponse.json(
         { success: false, message: 'Failed to create user account' },
         { status: 500 }
@@ -264,6 +238,33 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Supabase Auth user created:', authData.user)
+
+    // Create user record in our users table using the Supabase Auth user ID
+    const { data: user, error: createError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: authData.user.id, // Use the Supabase Auth user ID
+        email,
+        name,
+        role: invitationRole,
+        email_confirmed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('❌ Database error:', createError)
+      // Clean up the auth user if database fails
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      return NextResponse.json(
+        { success: false, message: 'Failed to create user account' },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ User created in database:', user)
 
     // Send custom confirmation email
     try {
