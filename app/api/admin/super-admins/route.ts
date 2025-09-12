@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
 
       // Get all media for these weddings
       const weddingIds = weddings.map(w => w.id)
-      let allMedia = []
+      let allMedia: any[] = []
       
       console.log(`📸 Getting media for ${weddingIds.length} weddings:`, weddingIds)
       
