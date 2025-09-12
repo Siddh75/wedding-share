@@ -54,13 +54,18 @@ export async function POST(request: NextRequest) {
           })
 
           // Set a session cookie for development
-          response.cookies.set('session-token', JSON.stringify(user), {
+          const sessionData = JSON.stringify(user)
+          console.log('🔐 Login API (test user): Setting session cookie with data:', sessionData)
+          
+          response.cookies.set('session-token', sessionData, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7 // 7 days
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/' // Ensure cookie is available for all paths
           })
 
+          console.log('🔐 Login API (test user): Session cookie set successfully')
           return response
         } catch (dbError) {
           console.error('Database error:', dbError)
@@ -79,13 +84,18 @@ export async function POST(request: NextRequest) {
           })
 
           // Set a session cookie for development
-          response.cookies.set('session-token', JSON.stringify(user), {
+          const sessionData = JSON.stringify(user)
+          console.log('🔐 Login API (fallback test user): Setting session cookie with data:', sessionData)
+          
+          response.cookies.set('session-token', sessionData, {
             httpOnly: true,
             secure: process.env.NODE_ENV !== 'development',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7 // 7 days
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/' // Ensure cookie is available for all paths
           })
 
+          console.log('🔐 Login API (fallback test user): Session cookie set successfully')
           return response
         }
       }
@@ -188,13 +198,18 @@ export async function POST(request: NextRequest) {
         })
 
         // Set session cookie
-        response.cookies.set('session-token', JSON.stringify(user), {
+        const sessionData = JSON.stringify(user)
+        console.log('🔐 Login API: Setting session cookie with data:', sessionData)
+        
+        response.cookies.set('session-token', sessionData, {
           httpOnly: true,
           secure: process.env.NODE_ENV !== 'development',
           sameSite: 'lax',
-          maxAge: 60 * 60 * 24 * 7 // 7 days
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+          path: '/' // Ensure cookie is available for all paths
         })
 
+        console.log('🔐 Login API: Session cookie set successfully')
         return response
       }
 
