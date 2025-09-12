@@ -13,8 +13,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/signin`
-    const signupUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/signup?wedding=test-wedding-id&name=${encodeURIComponent(weddingName)}&date=${encodeURIComponent(weddingDate)}&location=${encodeURIComponent(weddingLocation)}&email=${encodeURIComponent(to)}`
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+    const loginUrl = `${baseUrl}/auth/signin`
+    const signupUrl = `${baseUrl}/auth/signup?wedding=test-wedding-id&name=${encodeURIComponent(weddingName)}&date=${encodeURIComponent(weddingDate)}&location=${encodeURIComponent(weddingLocation)}&email=${encodeURIComponent(to)}`
     const actualRecipient = process.env.RESEND_DEV_EMAIL || to
 
     await sendWeddingInvitation({

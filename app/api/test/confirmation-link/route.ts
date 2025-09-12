@@ -6,7 +6,9 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get('email') || 'test@example.com'
     const token = searchParams.get('token') || 'test-token-123'
     
-    const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/confirm?token=${token}&email=${encodeURIComponent(email)}`
+    const { getConfirmationUrl, getBaseUrl } = await import('@/app/lib/url-utils')
+    const confirmUrl = getConfirmationUrl(token, email)
+    const baseUrl = getBaseUrl()
     
     return NextResponse.json({
       success: true,
@@ -14,7 +16,7 @@ export async function GET(request: NextRequest) {
       token,
       confirmUrl,
       decodedEmail: decodeURIComponent(encodeURIComponent(email)),
-      testPage: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/test-confirmation?token=${token}&email=${encodeURIComponent(email)}`
+      testPage: `${baseUrl}/test-confirmation?token=${token}&email=${encodeURIComponent(email)}`
     })
   } catch (error) {
     return NextResponse.json(

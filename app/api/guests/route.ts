@@ -221,7 +221,8 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (weddingResponse.data) {
-        const joinUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/join?wedding=${weddingId}&guest=${invitation.id}`
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+        const joinUrl = `${baseUrl}/join?wedding=${weddingId}&guest=${invitation.id}`
         
         await sendGuestInvitation({
           guestEmail,

@@ -196,8 +196,9 @@ export async function POST(request: NextRequest) {
 
         // Send invitation email
         try {
-          const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/signin`
-          const signupUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/signup?wedding=${wedding.id}&name=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(location)}&email=${encodeURIComponent(adminEmail)}`
+          const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'
+          const loginUrl = `${baseUrl}/auth/signin`
+          const signupUrl = `${baseUrl}/auth/signup?wedding=${wedding.id}&name=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(location)}&email=${encodeURIComponent(adminEmail)}`
           const adminName = existingUser ? existingUser.name : `Wedding Admin - ${name}`
           
           await sendWeddingInvitation({

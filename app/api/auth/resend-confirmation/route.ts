@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     try {
       const { sendConfirmationEmail } = await import('@/app/lib/email-service')
       const confirmationToken = user.id // Use user ID as token
-      const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/confirm?token=${confirmationToken}&email=${encodeURIComponent(email)}`
+      const { getConfirmationUrl } = await import('@/app/lib/url-utils')
+      const confirmUrl = getConfirmationUrl(confirmationToken, email)
       
       await sendConfirmationEmail(email, user.name, confirmUrl)
       console.log('✅ Confirmation email resent to:', email)
