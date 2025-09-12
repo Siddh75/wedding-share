@@ -11,7 +11,7 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -23,12 +23,23 @@ export async function POST(
       return NextResponse.json({ error: 'Emails are required' }, { status: 400 })
     }
 
+    // Get user ID from email
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
+      .single()
+
+    if (userError || !user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
     // Verify user is an admin of the wedding
     const { data: member, error: memberError } = await supabase
       .from('wedding_members')
       .select('id, role')
       .eq('wedding_id', weddingId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .eq('is_active', true)
       .single()
 
@@ -179,7 +190,7 @@ export async function GET(
       .from('wedding_members')
       .select('id, role')
       .eq('wedding_id', weddingId)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .eq('is_active', true)
       .single()
 
