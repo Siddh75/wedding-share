@@ -58,12 +58,11 @@ export async function POST(request: NextRequest) {
           console.log('🔐 Login API (test user): Setting session cookie with data:', sessionData)
           
           response.cookies.set('session-token', sessionData, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            httpOnly: false, // Temporarily set to false for debugging
+            secure: false, // Temporarily set to false for debugging
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/', // Ensure cookie is available for all paths
-            domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
+            path: '/'
           })
 
           console.log('🔐 Login API (test user): Session cookie set successfully')
@@ -89,12 +88,11 @@ export async function POST(request: NextRequest) {
           console.log('🔐 Login API (fallback test user): Setting session cookie with data:', sessionData)
           
           response.cookies.set('session-token', sessionData, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            httpOnly: false, // Temporarily set to false for debugging
+            secure: false, // Temporarily set to false for debugging
             sameSite: 'lax',
             maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/', // Ensure cookie is available for all paths
-            domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
+            path: '/'
           })
 
           console.log('🔐 Login API (fallback test user): Session cookie set successfully')
@@ -203,13 +201,13 @@ export async function POST(request: NextRequest) {
         const sessionData = JSON.stringify(user)
         console.log('🔐 Login API: Setting session cookie with data:', sessionData)
         
+        // Set session cookie with more permissive settings for debugging
         response.cookies.set('session-token', sessionData, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          httpOnly: false, // Temporarily set to false for debugging
+          secure: false, // Temporarily set to false for debugging
           sameSite: 'lax',
           maxAge: 60 * 60 * 24 * 7, // 7 days
-          path: '/', // Ensure cookie is available for all paths
-          domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
+          path: '/'
         })
 
         console.log('🔐 Login API: Session cookie set successfully')

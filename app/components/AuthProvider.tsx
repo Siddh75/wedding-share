@@ -40,8 +40,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('🔐 AuthProvider: Setting user from session:', data.user)
         setUser(data.user)
       } else {
-        console.log('🔐 AuthProvider: No authenticated user')
-        setUser(null)
+        console.log('🔐 AuthProvider: No authenticated user from session, checking localStorage...')
+        // Fallback to localStorage
+        const localUser = localStorage.getItem('wedding-share-user')
+        if (localUser) {
+          try {
+            const user = JSON.parse(localUser)
+            console.log('🔐 AuthProvider: Found user in localStorage:', user)
+            setUser(user)
+          } catch (error) {
+            console.error('🔐 AuthProvider: Error parsing localStorage user:', error)
+            setUser(null)
+          }
+        } else {
+          console.log('🔐 AuthProvider: No user found in localStorage either')
+          setUser(null)
+        }
       }
     } catch (error) {
       console.error('🔐 AuthProvider: Session check error:', error)
@@ -70,6 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (result.success && result.user) {
         console.log('🔐 AuthProvider: Setting user:', result.user)
         setUser(result.user)
+        
+        // Also store in localStorage as backup
+        localStorage.setItem('wedding-share-user', JSON.stringify(result.user))
+        console.log('🔐 AuthProvider: User stored in localStorage as backup')
+        
         console.log('🔐 AuthProvider: User set, now checking session...')
         // Re-check session to ensure consistency
         await checkSession()
@@ -97,9 +116,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         credentials: 'include'
       })
+      // Clear localStorage as well
+      localStorage.removeItem('wedding-share-user')
       setUser(null)
     } catch (error) {
       console.error('Logout error:', error)
+      // Even if API call fails, clear local state
+      localStorage.removeItem('wedding-share-user')
+      setUser(null)
     }
   }
 
