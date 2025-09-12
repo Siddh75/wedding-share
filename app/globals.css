@@ -31,3 +31,32 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Fix input field colors */
+@layer base {
+  input, textarea, select {
+    color: #374151 !important; /* text-gray-700 */
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important; /* border-gray-300 */
+  }
+  
+  input::placeholder, textarea::placeholder {
+    color: #9ca3af !important; /* text-gray-400 */
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    color: #111827 !important; /* text-gray-900 */
+    border-color: #ec4899 !important; /* border-pink-500 */
+  }
+  
+  /* Force light mode for inputs regardless of system preference */
+  input, textarea, select {
+    background-color: #ffffff !important;
+    color: #374151 !important;
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }
+}

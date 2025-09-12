@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   images: {
     domains: [
       'res.cloudinary.com',
@@ -10,9 +7,6 @@ const nextConfig = {
       'vercel.app',
       'vercel.com'
     ],
-  },
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
   async headers() {
     return [

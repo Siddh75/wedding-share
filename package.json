@@ -10,31 +10,38 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/supabase-adapter": "^0.1.0",
+    "@hookform/resolvers": "^3.3.2",
+    "@supabase/supabase-js": "^2.38.0",
+    "autoprefixer": "^10.4.16",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.41.3",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "framer-motion": "^10.16.4",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.292.0",
     "next": "14.0.0",
+    "postcss": "^8.4.31",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "@supabase/supabase-js": "^2.38.0",
-    "next-auth": "^4.24.0",
-    "@next-auth/supabase-adapter": "^0.1.0",
-    "cloudinary": "^1.41.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "zod": "^3.22.4",
     "react-dropzone": "^14.2.3",
+    "react-hook-form": "^7.48.2",
     "react-hot-toast": "^2.4.1",
-    "lucide-react": "^0.292.0",
+    "react-intersection-observer": "^9.5.3",
+    "resend": "^6.0.2",
+    "tailwind-merge": "^2.0.0",
     "tailwindcss": "^3.3.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.5",
+    "@types/jsonwebtoken": "^9.0.4",
     "@types/node": "^20.8.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/bcryptjs": "^2.4.5",
-    "@types/jsonwebtoken": "^9.0.4",
-    "typescript": "^5.2.0",
     "eslint": "^8.51.0",
-    "eslint-config-next": "14.0.0"
+    "eslint-config-next": "14.0.0",
+    "typescript": "^5.2.0"
   }
 }

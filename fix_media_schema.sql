@@ -1,0 +1,10 @@
+-- Fix media table schema
+ALTER TABLE media ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS file_size BIGINT;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS metadata JSONB;
+ALTER TABLE media ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved';
+
+
+
+
