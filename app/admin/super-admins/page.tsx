@@ -123,7 +123,7 @@ export default function SuperAdminManagementPage() {
       alert('Super admin account created successfully!')
     } catch (err) {
       console.error('Error creating super admin:', err)
-      alert(err.message || 'Failed to create super admin account')
+      alert(err instanceof Error ? err.message : 'Failed to create super admin account')
     } finally {
       setCreating(false)
     }
