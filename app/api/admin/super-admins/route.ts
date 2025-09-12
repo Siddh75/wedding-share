@@ -86,8 +86,8 @@ export async function GET(request: NextRequest) {
       console.log(`🔍 Processing super admin: ${admin.name} (${admin.id})`)
       
       // Get weddings created by this super admin - try both created_by and super_admin_id
-      let weddings = []
-      let weddingsError = null
+      let weddings: any[] = []
+      let weddingsError: any = null
       
       // First try with created_by
       const { data: weddingsByCreatedBy, error: createdByError } = await supabaseAdmin
