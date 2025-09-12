@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Looking up user with ID:', token)
     let { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, email_confirmed')
+      .select('id, email, email_confirmed, wedding_data')
       .eq('id', token)
       .single()
 
@@ -126,9 +126,21 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Email confirmed successfully for:', email)
 
+    // Check if this is a wedding signup (has wedding_data)
+    let weddingData = null
+    if (user.wedding_data) {
+      try {
+        weddingData = JSON.parse(Buffer.from(user.wedding_data, 'base64').toString())
+        console.log('✅ Found wedding data:', weddingData)
+      } catch (error) {
+        console.error('❌ Error parsing wedding data:', error)
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Email confirmed successfully'
+      message: 'Email confirmed successfully',
+      weddingData: weddingData
     })
 
   } catch (error) {

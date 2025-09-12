@@ -271,55 +271,6 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User created in database:', user)
 
-    // Handle wedding creation for direct admin signup
-    let createdWedding = null
-    if (role === 'admin' && weddingData && !weddingId) {
-      console.log('🏗️ Creating wedding for direct admin signup...')
-      
-      try {
-        // Generate unique wedding code
-        const code = `${weddingData.name.replace(/\s+/g, '').toUpperCase()}${Date.now().toString().slice(-4)}`
-        
-        const { data: wedding, error: weddingError } = await supabaseAdmin
-          .from('weddings')
-          .insert({
-            name: weddingData.name,
-            description: weddingData.description || '',
-            date: weddingData.date,
-            location: weddingData.location,
-            code,
-            super_admin_id: user.id, // Assign the user as super admin
-            status: 'draft',
-            cover_image: weddingData.coverImage || null
-          })
-          .select()
-          .single()
-
-        if (weddingError) {
-          console.error('❌ Error creating wedding:', weddingError)
-          // Don't fail the signup if wedding creation fails
-        } else {
-          console.log('✅ Wedding created:', wedding)
-          createdWedding = wedding
-          
-          // Update user role to super_admin since they created the wedding
-          const { error: updateError } = await supabaseAdmin
-            .from('users')
-            .update({ role: 'super_admin' })
-            .eq('id', user.id)
-          
-          if (updateError) {
-            console.error('❌ Error updating user role:', updateError)
-          } else {
-            console.log('✅ User role updated to super_admin')
-            user.role = 'super_admin'
-          }
-        }
-      } catch (weddingError) {
-        console.error('❌ Error in wedding creation:', weddingError)
-        // Continue with signup even if wedding creation fails
-      }
-    }
 
     // Send custom confirmation email
     try {
@@ -347,8 +298,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name,
         role: user.role
-      },
-      wedding: createdWedding
+      }
     })
   } catch (error) {
     console.error('Error in signup:', error)

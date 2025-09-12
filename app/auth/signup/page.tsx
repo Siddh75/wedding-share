@@ -39,8 +39,54 @@ export default function SignUp() {
   
   const [isLoading, setIsLoading] = useState(false)
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null)
+  const [step, setStep] = useState<'wedding' | 'account'>('wedding')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleWeddingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!weddingData.weddingName || !weddingData.weddingDate || !weddingData.weddingLocation || !formData.email) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      // Send wedding details and email for confirmation
+      const response = await fetch('/api/auth/wedding-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          weddingData: {
+            name: weddingData.weddingName,
+            description: weddingData.weddingDescription,
+            date: weddingData.weddingDate,
+            location: weddingData.weddingLocation,
+            coverImage: weddingData.coverImage
+          }
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('Please check your email to complete your account setup!')
+        setStep('account')
+      } else {
+        toast.error(result.message || 'Failed to send confirmation email')
+      }
+    } catch (error) {
+      console.error('Wedding signup error:', error)
+      toast.error('An error occurred during signup')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (formData.password !== formData.confirmPassword) {
@@ -53,88 +99,43 @@ export default function SignUp() {
       return
     }
 
-    // For direct admin signup, validate wedding data
-    if (isDirectAdminSignup) {
-      if (!weddingData.weddingName || !weddingData.weddingDate || !weddingData.weddingLocation) {
-        toast.error('Please fill in all wedding details')
-        return
-      }
-    }
-
     setIsLoading(true)
 
     try {
-      if (isDirectAdminSignup) {
-        // For direct admin signup, create account and wedding together
-        const signupData = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: 'admin',
-          weddingData: {
-            name: weddingData.weddingName,
-            description: weddingData.weddingDescription,
-            date: weddingData.weddingDate,
-            location: weddingData.weddingLocation,
-            coverImage: weddingData.coverImage
-          }
-        }
+      // For invitation signup, use existing flow
+      const signupData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        weddingId: weddingId,
+        role: weddingId ? 'admin' : 'guest'
+      }
 
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(signupData),
-        })
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(signupData),
+      })
 
-        const result = await response.json()
+      const result = await response.json()
 
-        if (result.success) {
-          toast.success('Account and wedding created successfully!')
+      if (result.success) {
+        if (weddingId) {
+          // For invited users, log in automatically
+          toast.success('Account created successfully!')
           const loginSuccess = await login(formData.email, formData.password)
           if (loginSuccess) {
-            router.push(`/weddings/${result.wedding.id}/manage`)
+            router.push(`/weddings/${weddingId}/manage`)
           }
         } else {
-          toast.error(result.message || 'Failed to create account')
+          // For direct signups, show confirmation message
+          toast.success('Account created! Please check your email to confirm your account.')
+          router.push('/auth/signin?message=Please check your email to confirm your account')
         }
       } else {
-        // For invitation signup, use existing flow
-        const signupData = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          weddingId: weddingId,
-          role: weddingId ? 'admin' : 'guest'
-        }
-
-        const response = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(signupData),
-        })
-
-        const result = await response.json()
-
-        if (result.success) {
-          if (weddingId) {
-            // For invited users, log in automatically
-            toast.success('Account created successfully!')
-            const loginSuccess = await login(formData.email, formData.password)
-            if (loginSuccess) {
-              router.push(`/weddings/${weddingId}/manage`)
-            }
-          } else {
-            // For direct signups, show confirmation message
-            toast.success('Account created! Please check your email to confirm your account.')
-            router.push('/auth/signin?message=Please check your email to confirm your account')
-          }
-        } else {
-          toast.error(result.message || 'Failed to create account')
-        }
+        toast.error(result.message || 'Failed to create account')
       }
     } catch (error) {
       console.error('Signup error:', error)
@@ -238,101 +239,28 @@ export default function SignUp() {
           )}
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
-                  placeholder="Enter your full name"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-                {invitationEmail && (
-                  <span className="text-xs text-gray-500 ml-2">(Invitation email - cannot be changed)</span>
-                )}
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  readOnly={!!invitationEmail}
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400 ${
-                    invitationEmail ? 'bg-gray-100 cursor-not-allowed' : ''
-                  }`}
-                  placeholder="Enter your email address"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
-                  placeholder="Create a password"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
-                  placeholder="Confirm your password"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Wedding Creation Fields for Direct Admin Signup */}
-          {isDirectAdminSignup && (
-            <div className="space-y-4 border-t pt-6">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Wedding Details</h3>
-                <p className="text-sm text-gray-600">Tell us about your special day</p>
+        {/* Step 1: Wedding Details Form (for direct admin signup) */}
+        {isDirectAdminSignup && step === 'wedding' && (
+          <form className="mt-8 space-y-6" onSubmit={handleWeddingSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
+                    placeholder="Enter your email address"
+                  />
+                </div>
               </div>
 
               <div>
@@ -431,30 +359,130 @@ export default function SignUp() {
                 </div>
               </div>
             </div>
-          )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isLoading 
-                ? (isDirectAdminSignup ? 'Creating Account & Wedding...' : 'Creating Account...') 
-                : (isDirectAdminSignup ? 'Create Account & Wedding' : 'Create Account')
-              }
-            </button>
-          </div>
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isLoading ? 'Sending Confirmation...' : 'Send Confirmation Email'}
+              </button>
+            </div>
+          </form>
+        )}
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <a href="/auth/signin" className="font-medium text-pink-600 hover:text-pink-500">
-                Sign in here
-              </a>
-            </p>
-          </div>
-        </form>
+        {/* Step 2: Account Details Form (for invitation signup or after email confirmation) */}
+        {(!isDirectAdminSignup || step === 'account') && (
+          <form className="mt-8 space-y-6" onSubmit={handleAccountSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
+                    placeholder="Enter your full name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                  {invitationEmail && (
+                    <span className="text-xs text-gray-500 ml-2">(Invitation email - cannot be changed)</span>
+                  )}
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    readOnly={!!invitationEmail}
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400 ${
+                      invitationEmail ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
+                    placeholder="Enter your email address"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
+                    placeholder="Create a password"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors placeholder-gray-400"
+                    placeholder="Confirm your password"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <a href="/auth/signin" className="font-medium text-pink-600 hover:text-pink-500">
+              Sign in here
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   )
