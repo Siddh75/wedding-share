@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in invitation diagnostics:', error)
     return NextResponse.json(
-      { success: false, message: 'Internal server error', error: error.message },
+      { success: false, message: 'Internal server error', error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

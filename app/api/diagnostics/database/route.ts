@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     console.error('Database diagnostic error:', error)
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     })
   }
 }

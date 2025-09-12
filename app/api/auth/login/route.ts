@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         console.error('❌ Login error:', error)
         return NextResponse.json(
-          { success: false, message: error.message },
+          { success: false, message: error instanceof Error ? error.message : 'Login failed' },
           { status: 401 }
         )
       }
