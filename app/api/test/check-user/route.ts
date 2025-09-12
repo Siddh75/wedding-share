@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         inSupabaseAuth: 'Unable to check',
         databaseUser: dbUser,
         databaseError: dbError,
-        authError: authError.message
+        authError: authError instanceof Error ? authError.message : 'Unknown auth error'
       })
     }
     
