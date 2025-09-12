@@ -30,7 +30,7 @@ export default function TestConfirmationPage() {
       alert(`Result: ${JSON.stringify(data, null, 2)}`)
     } catch (error) {
       console.error('Test confirmation error:', error)
-      alert(`Error: ${error.message}`)
+      alert(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
     }
   }
 
