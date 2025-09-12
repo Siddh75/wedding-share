@@ -218,6 +218,11 @@ export async function POST(request: NextRequest) {
     // For non-invited users, create account directly but mark as unconfirmed
     console.log('🔐 Creating regular user account...')
     
+    // If user is signing up as admin but no weddingId provided, they need to create a wedding
+    if (invitationRole === 'admin' && !weddingId) {
+      console.log('⚠️ User signing up as admin without weddingId - they will need to create a wedding after verification')
+    }
+    
     // Create Supabase Auth user first to get the proper ID
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,

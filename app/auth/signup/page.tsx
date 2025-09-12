@@ -47,7 +47,7 @@ export default function SignUp() {
         email: formData.email,
         password: formData.password,
         weddingId: weddingId,
-        role: 'admin' // Automatically assign admin role for invitations
+        role: weddingId ? 'admin' : 'guest' // Only assign admin role for invitations
       }
 
       const response = await fetch('/api/auth/signup', {

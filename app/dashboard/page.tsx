@@ -63,9 +63,9 @@ export default function DashboardPage() {
           // For admin users, redirect to their wedding page
           window.location.href = `/weddings/${data.weddings[0].id}`
         } else {
-          console.log('❌ No weddings found for admin')
-          // If no weddings found, show the dashboard with empty state
-          setWeddings([])
+          console.log('❌ No weddings found for admin - redirecting to create wedding')
+          // If no weddings found, redirect to create wedding page
+          window.location.href = '/weddings/create'
         }
       } else {
         console.error('❌ Failed to fetch weddings:', response.status)
