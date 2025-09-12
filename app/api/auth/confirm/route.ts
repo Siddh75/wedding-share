@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
             role: 'guest', // Default role
             email_confirmed: false // Will be set to true below
           })
-          .select('id, email, email_confirmed')
+          .select('id, email, email_confirmed, wedding_data')
           .single()
         
         if (createError) {
