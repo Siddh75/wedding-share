@@ -25,7 +25,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkSession = async () => {
     try {
       console.log('🔐 AuthProvider: Checking session...')
-      const response = await fetch('/api/auth/session')
+      const response = await fetch('/api/auth/session', {
+        credentials: 'include', // Important: include cookies
+      })
       const data = await response.json()
       console.log('🔐 AuthProvider: Session response:', data)
       
@@ -54,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', // Important: include cookies
       })
 
       const result = await response.json()

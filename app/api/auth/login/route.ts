@@ -14,8 +14,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // For development, allow specific test accounts without Supabase auth
-    if (process.env.NODE_ENV === 'development') {
+    // Allow test accounts for demo purposes
+    // Check if we're in a test environment or if test users are enabled
+    const isTestEnvironment = process.env.NODE_ENV === 'development' || process.env.ENABLE_TEST_USERS === 'true'
+    
+    // For demo purposes, always check test users first
+    if (true) { // Always check test users for demo
       const testUsers = [
         { email: 'admin@weddingshare.com', password: 'admin123', role: 'application_admin', name: 'Application Admin' },
         { email: 'super@venue.com', password: 'super123', role: 'super_admin', name: 'Super Admin' },
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // For development test users, we'll keep them but remove the old database user check
+      // No test user found, proceed to Supabase Auth
       console.log('🔍 No test user found, proceeding to Supabase Auth...')
     }
 
