@@ -87,9 +87,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (user.role !== 'super_admin') {
+    // Allow both super_admin and admin users to create weddings
+    // Admin users can create weddings during signup or if they have permission
+    if (user.role !== 'super_admin' && user.role !== 'admin') {
       return NextResponse.json(
-        { success: false, message: 'Only Super Admins can create weddings' },
+        { success: false, message: 'Only Super Admins and Admins can create weddings' },
         { status: 403 }
       )
     }
