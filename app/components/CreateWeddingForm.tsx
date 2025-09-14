@@ -8,6 +8,7 @@ import { Calendar, MapPin, Camera, Heart, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { cn } from '@/app/lib/utils'
+import { generateSubdomain } from '@/app/lib/subdomain-utils'
 
 const createWeddingSchema = z.object({
   name: z.string().min(3, 'Wedding name must be at least 3 characters').max(100, 'Wedding name must be less than 100 characters'),
@@ -163,7 +164,7 @@ export default function CreateWeddingForm() {
             )}
             {watchedName && (
               <p className="mt-1 text-sm text-gray-500">
-                Your wedding will be accessible at: <span className="font-mono text-pink-600">weddingshare.com/{watchedName.toLowerCase().replace(/[^a-z0-9]/g, '-')}</span>
+                Your wedding will be accessible at: <span className="font-mono text-pink-600">{generateSubdomain(watchedName)}.weddingshare.com</span>
               </p>
             )}
           </div>

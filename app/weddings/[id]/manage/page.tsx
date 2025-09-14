@@ -13,7 +13,8 @@ import {
   Camera,
   Settings,
   Heart,
-  Trash2
+  Trash2,
+  Globe
 } from 'lucide-react'
 
 interface Wedding {
@@ -201,6 +202,13 @@ export default function WeddingManagePage() {
                 <p className="text-gray-600 mt-1">Edit wedding details and settings</p>
               </div>
               <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => router.push(`/weddings/${weddingId}/subdomain`)}
+                  className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Manage Subdomain</span>
+                </button>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}

@@ -22,6 +22,7 @@ interface Wedding {
   location: string
   description: string
   code: string
+  subdomain: string
   status: 'draft' | 'active' | 'completed' | 'archived'
   guestCount: number
   photoCount: number
@@ -100,6 +101,7 @@ export default function WeddingManagement() {
           location: wedding.location,
           description: wedding.description,
           code: wedding.code,
+          subdomain: wedding.subdomain,
           status: wedding.status,
           guestCount: wedding.wedding_invitations?.[0]?.count || 0,
           photoCount: wedding.media?.[0]?.count || 0,
@@ -402,7 +404,14 @@ export default function WeddingManagement() {
                           </span>
                         </div>
                         <p className="mt-2 text-sm">{wedding.description}</p>
-                        <p className="mt-2 text-xs text-gray-500">Code: {wedding.code}</p>
+                        <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                          <span>Code: {wedding.code}</span>
+                          {wedding.subdomain && (
+                            <span className="font-mono bg-gray-100 px-2 py-1 rounded">
+                              {wedding.subdomain}.weddingshare.com
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -413,6 +422,17 @@ export default function WeddingManagement() {
                         <Settings className="w-4 h-4" />
                         <span>Manage</span>
                       </button>
+                      {wedding.subdomain && (
+                        <a
+                          href={`https://${wedding.subdomain}.weddingshare.com`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors"
+                        >
+                          <span>Visit Subdomain</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </a>
+                      )}
                       <button
                         onClick={() => router.push(`/weddings/${wedding.id}`)}
                         className="inline-flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-600 hover:to-purple-700"

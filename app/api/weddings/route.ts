@@ -117,6 +117,48 @@ export async function POST(request: NextRequest) {
     // Generate unique wedding code
     const code = `${name.replace(/\s+/g, '').toUpperCase()}${Date.now().toString().slice(-4)}`
 
+    // Generate subdomain from wedding name
+    const generateSubdomain = (weddingName: string) => {
+      // Clean the name: remove special characters, convert to lowercase, replace spaces with hyphens
+      const cleanName = weddingName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      
+      // Add random suffix to ensure uniqueness
+      const randomSuffix = Math.random().toString(36).substring(2, 8)
+      return `${cleanName}-${randomSuffix}`
+    }
+
+    let subdomain = generateSubdomain(name)
+    
+    // Ensure subdomain is unique
+    let attempts = 0
+    while (attempts < 5) {
+      const { data: existingWedding } = await supabaseAdmin
+        .from('weddings')
+        .select('id')
+        .eq('subdomain', subdomain)
+        .single()
+      
+      if (!existingWedding) {
+        break // Subdomain is unique
+      }
+      
+      // Generate new subdomain with different suffix
+      subdomain = generateSubdomain(name)
+      attempts++
+    }
+
+    if (attempts >= 5) {
+      return NextResponse.json(
+        { success: false, message: 'Unable to generate unique subdomain. Please try again.' },
+        { status: 500 }
+      )
+    }
+
     const { data: wedding, error } = await supabaseAdmin
       .from('weddings')
       .insert({
@@ -125,6 +167,7 @@ export async function POST(request: NextRequest) {
         location,
         description,
         code,
+        subdomain,
         super_admin_id: user.id,
         subscription_plan_id,
         status: 'draft'
