@@ -127,8 +127,20 @@ export default function WeddingManagement() {
   }
 
   useEffect(() => {
-    fetchWeddings()
-  }, [])
+    console.log('🔍 Manage Weddings: User state changed', { user, loading })
+    if (user && !loading) {
+      if (user.role === 'super_admin') {
+        console.log('✅ Super admin detected, fetching weddings')
+        fetchWeddings()
+      } else {
+        console.log('❌ Not super admin, redirecting to dashboard')
+        router.push('/dashboard')
+      }
+    } else if (!loading && !user) {
+      console.log('❌ No user found, redirecting to signin')
+      router.push('/auth/signin')
+    }
+  }, [user, loading, router])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -140,6 +152,19 @@ export default function WeddingManagement() {
     }
   }
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+          <p className="mt-2 text-sm text-gray-500">Debug: Checking authentication...</p>
+        </div>
+      </div>
+    )
+  }
+
   // Check if user is not logged in or not a super admin
   if (!user || user.role !== 'super_admin') {
     return (
@@ -147,6 +172,10 @@ export default function WeddingManagement() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
           <p className="text-gray-600">Only Super Admins can manage weddings.</p>
+          <p className="mt-2 text-sm text-gray-500">Debug: User: {user ? `${user.name} (${user.role})` : 'Not logged in'}</p>
+          <a href="/auth/signin" className="mt-4 inline-block bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
+            Sign In
+          </a>
         </div>
       </div>
     )

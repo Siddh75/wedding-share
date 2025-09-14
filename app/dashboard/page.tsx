@@ -210,6 +210,7 @@ export default function DashboardPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-2 text-sm text-gray-500">Debug: Loading user session...</p>
         </div>
       </div>
     )
@@ -233,6 +234,10 @@ export default function DashboardPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
           <p className="text-gray-600">Please sign in to access the dashboard.</p>
+          <p className="mt-2 text-sm text-gray-500">Debug: No user found, loading: {loading.toString()}</p>
+          <a href="/auth/signin" className="mt-4 inline-block bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700">
+            Sign In
+          </a>
         </div>
       </div>
     )
