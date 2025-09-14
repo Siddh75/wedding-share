@@ -16,22 +16,25 @@ export async function GET(request: NextRequest) {
     const testResult = await cloudinary.api.ping()
     console.log('✅ Cloudinary ping successful:', testResult)
     
-    // Get account info
-    const accountInfo = await cloudinary.api.account()
-    console.log('✅ Cloudinary account info:', {
-      cloud_name: accountInfo.cloud_name,
-      plan: accountInfo.plan,
-      credits: accountInfo.credits
+    // Test a simple upload to verify credentials
+    const testUpload = await cloudinary.uploader.upload('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', {
+      resource_type: 'image',
+      public_id: 'test-connection',
+      overwrite: true
     })
+    console.log('✅ Cloudinary test upload successful:', testUpload.public_id)
+    
+    // Clean up test upload
+    await cloudinary.uploader.destroy('test-connection')
+    console.log('✅ Test upload cleaned up')
     
     return NextResponse.json({
       success: true,
       cloudinary: {
         ping: testResult,
-        account: {
-          cloud_name: accountInfo.cloud_name,
-          plan: accountInfo.plan,
-          credits: accountInfo.credits
+        testUpload: {
+          public_id: testUpload.public_id,
+          secure_url: testUpload.secure_url
         },
         config: {
           cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
