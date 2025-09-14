@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🔐 Session API: Checking session... [UPDATED VERSION - v3.0]')
-    console.log('🔐 Session API: Request URL:', request.url)
     
     // Get cookie header directly (same logic as working debug endpoints)
     const cookieHeader = request.headers.get('cookie')
