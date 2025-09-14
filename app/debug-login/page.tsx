@@ -57,7 +57,7 @@ export default function DebugLogin() {
       const data = await response.json()
       console.log('🔐 Session response data:', data)
       
-      setResult(prev => ({
+      setResult((prev: any) => ({
         ...prev,
         session: {
           status: response.status,
@@ -66,7 +66,7 @@ export default function DebugLogin() {
       }))
     } catch (error) {
       console.error('❌ Session error:', error)
-      setResult(prev => ({
+      setResult((prev: any) => ({
         ...prev,
         session: {
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -77,7 +77,7 @@ export default function DebugLogin() {
 
   const testCookies = () => {
     console.log('🍪 Current cookies:', document.cookie)
-    setResult(prev => ({
+    setResult((prev: any) => ({
       ...prev,
       cookies: document.cookie
     }))
