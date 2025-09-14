@@ -283,7 +283,7 @@ export default function MediaGallery({
           <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">
-                {selectedMedia.filename || 'Media Preview'}
+                {selectedMedia.file_name || 'Media Preview'}
               </h3>
               <button
                 onClick={() => setSelectedMedia(null)}
@@ -293,15 +293,15 @@ export default function MediaGallery({
               </button>
             </div>
             <div className="p-4">
-              {selectedMedia.mime_type?.startsWith('image/') ? (
+              {selectedMedia.file_type?.startsWith('image/') ? (
                 <img
-                  src={selectedMedia.url}
-                  alt={selectedMedia.filename || 'Media'}
+                  src={selectedMedia.file_url}
+                  alt={selectedMedia.file_name || 'Media'}
                   className="max-w-full max-h-[70vh] object-contain"
                 />
-              ) : selectedMedia.mime_type?.startsWith('video/') ? (
+              ) : selectedMedia.file_type?.startsWith('video/') ? (
                 <video
-                  src={selectedMedia.url}
+                  src={selectedMedia.file_url}
                   controls
                   className="max-w-full max-h-[70vh]"
                 />
