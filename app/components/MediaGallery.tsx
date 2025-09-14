@@ -14,7 +14,6 @@ interface MediaItem {
   is_approved: boolean
   uploaded_by: string
   uploaded_at: string
-  description?: string
   tags?: string[]
 }
 
@@ -244,7 +243,7 @@ export default function MediaGallery({
             {/* Media Info */}
             <div className="p-3">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {item.description || 'Untitled'}
+                {item.filename || 'Untitled'}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 by {item.uploaded_by} • {new Date(item.uploaded_at).toLocaleDateString()}
@@ -278,7 +277,7 @@ export default function MediaGallery({
           <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">
-                {selectedMedia.description || 'Media Preview'}
+                {selectedMedia.filename || 'Media Preview'}
               </h3>
               <button
                 onClick={() => setSelectedMedia(null)}
