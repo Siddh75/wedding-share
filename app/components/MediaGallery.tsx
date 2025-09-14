@@ -14,6 +14,7 @@ interface MediaItem {
   is_approved: boolean
   uploaded_by: string
   uploaded_at: string
+  description?: string
   tags?: string[]
 }
 
