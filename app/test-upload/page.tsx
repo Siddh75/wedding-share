@@ -163,6 +163,60 @@ export default function TestUpload() {
     }
   }
 
+  const testSession = async () => {
+    try {
+      console.log('🧪 Testing session cookie directly...')
+      
+      // Check if session cookie exists in document.cookie
+      const cookies = document.cookie
+      console.log('🍪 All cookies:', cookies)
+      
+      const sessionCookie = cookies.split(';').find(c => c.trim().startsWith('session-token='))
+      console.log('🍪 Session cookie:', sessionCookie)
+      
+      if (sessionCookie) {
+        const sessionValue = sessionCookie.split('=')[1]
+        console.log('🍪 Session value:', sessionValue)
+        
+        try {
+          const parsedSession = JSON.parse(decodeURIComponent(sessionValue))
+          console.log('🍪 Parsed session:', parsedSession)
+          setResult({
+            status: 200,
+            data: {
+              cookieFound: true,
+              sessionValue: sessionValue,
+              parsedSession: parsedSession
+            }
+          })
+        } catch (parseError) {
+          console.error('❌ Session parse error:', parseError)
+          setResult({
+            status: 200,
+            data: {
+              cookieFound: true,
+              sessionValue: sessionValue,
+              parseError: parseError instanceof Error ? parseError.message : 'Unknown error'
+            }
+          })
+        }
+      } else {
+        setResult({
+          status: 200,
+          data: {
+            cookieFound: false,
+            allCookies: cookies
+          }
+        })
+      }
+    } catch (error) {
+      console.error('❌ Session test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -209,6 +263,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
           >
             Test Wedding Access
+          </button>
+          
+          <button
+            onClick={testSession}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+          >
+            Test Session Cookie
           </button>
           
           <button
