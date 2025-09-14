@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create a temporary user record first
+    // Create a temporary user record (no wedding created yet)
     const { data: tempUser, error: createError } = await supabaseAdmin
       .from('users')
       .insert({
@@ -66,47 +66,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create the wedding record and link it to the temporary user
-    const { data: wedding, error: weddingError } = await supabaseAdmin
-      .from('weddings')
-      .insert({
-        name: weddingData.name,
-        date: weddingData.date,
-        location: weddingData.location,
-        description: weddingData.description || '',
-        created_by: tempUser.id,
-        is_active: true
-      })
-      .select()
-      .single()
+    // Store wedding data temporarily in a simple way
+    // We'll encode it in the confirmation token or use a separate temporary storage
+    const weddingDataEncoded = Buffer.from(JSON.stringify(weddingData)).toString('base64')
+    console.log('💒 Wedding data encoded for temporary storage:', weddingDataEncoded)
 
-    if (weddingError) {
-      console.error('❌ Error creating wedding:', weddingError)
-      // Clean up the temporary user
-      await supabaseAdmin.from('users').delete().eq('id', tempUser.id)
-      return NextResponse.json(
-        { success: false, message: 'Failed to create wedding' },
-        { status: 500 }
-      )
-    }
-
-    // Send confirmation email
+    // Send confirmation email with wedding data encoded in the URL
     try {
       const confirmationToken = tempUser.id
-      const confirmUrl = getConfirmationUrl(confirmationToken, email)
+      // Include wedding data in the confirmation URL as a query parameter
+      const confirmUrl = `${getConfirmationUrl(confirmationToken, email)}&weddingData=${encodeURIComponent(weddingDataEncoded)}`
       
       console.log('🔗 Generated confirmation URL:', confirmUrl)
       console.log('🔑 Token:', confirmationToken)
       console.log('📧 Email:', email)
-      console.log('💒 Wedding ID:', wedding.id)
+      console.log('💒 Wedding data encoded:', weddingDataEncoded.substring(0, 50) + '...')
       
       await sendConfirmationEmail(email, 'Wedding Admin', confirmUrl)
       console.log('✅ Confirmation email sent to:', email)
     } catch (emailError) {
       console.error('❌ Error sending confirmation email:', emailError)
-      // Clean up the temporary user and wedding if email fails
+      // Clean up the temporary user if email fails
       await supabaseAdmin.from('users').delete().eq('id', tempUser.id)
-      await supabaseAdmin.from('weddings').delete().eq('id', wedding.id)
       return NextResponse.json(
         { success: false, message: 'Failed to send confirmation email' },
         { status: 500 }
@@ -116,8 +97,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Please check your email to complete your account setup',
-      tempUserId: tempUser.id,
-      weddingId: wedding.id
+      tempUserId: tempUser.id
     })
   } catch (error) {
     console.error('Error in wedding signup:', error)
