@@ -12,9 +12,10 @@ export default function TestUpload() {
       // Create a simple test file
       const testFile = new File(['test content'], 'test.txt', { type: 'text/plain' })
       
+      // Use the wedding ID from your logs: 0841b34a-d327-4f87-8a42-b07050468ded
       const formData = new FormData()
       formData.append('file', testFile)
-      formData.append('weddingId', 'test-wedding-id')
+      formData.append('weddingId', '0841b34a-d327-4f87-8a42-b07050468ded')
       formData.append('description', 'Test upload')
 
       console.log('🧪 Testing upload API...')
@@ -70,12 +71,75 @@ export default function TestUpload() {
     }
   }
 
+  const testLogin = async () => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'couple@wedding.com',
+          password: 'couple123'
+        }),
+        credentials: 'include'
+      })
+      const data = await response.json()
+      console.log('🔐 Login response:', data)
+      setResult({
+        login: data
+      })
+    } catch (error) {
+      console.error('❌ Login test error:', error)
+    }
+  }
+
+  const testCreateWedding = async () => {
+    try {
+      const response = await fetch('/api/weddings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'Test Wedding',
+          date: '2024-12-25',
+          location: 'Test Location',
+          description: 'Test wedding for upload testing',
+          adminEmail: 'couple@wedding.com'
+        }),
+        credentials: 'include'
+      })
+      const data = await response.json()
+      console.log('💒 Create wedding response:', data)
+      setResult({
+        createWedding: data
+      })
+    } catch (error) {
+      console.error('❌ Create wedding test error:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Upload Test Page</h1>
         
         <div className="space-y-4">
+          <button
+            onClick={testLogin}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Login (couple@wedding.com)
+          </button>
+          
+          <button
+            onClick={testCreateWedding}
+            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
+          >
+            Create Test Wedding
+          </button>
+          
           <button
             onClick={testAuth}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
