@@ -265,6 +265,107 @@ export default function TestUpload() {
     }
   }
 
+  const testSessionDebug = async () => {
+    try {
+      console.log('🧪 Testing session API with debug info...')
+      
+      // Set a test cookie
+      const testUser = {
+        id: 'debug-456',
+        email: 'debug@example.com',
+        name: 'Debug User',
+        role: 'admin'
+      }
+      
+      const testCookieValue = JSON.stringify(testUser)
+      document.cookie = `session-token=${encodeURIComponent(testCookieValue)}; path=/; max-age=3600; samesite=lax`
+      
+      console.log('🍪 Debug cookie set:', testCookieValue)
+      console.log('🍪 All cookies:', document.cookie)
+      
+      // Test the session API
+      const response = await fetch('/api/auth/session', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      console.log('📥 Session API response status:', response.status)
+      console.log('📥 Session API response headers:', Object.fromEntries(response.headers.entries()))
+      
+      const data = await response.json()
+      console.log('📥 Session API response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          debugTest: true,
+          cookieValue: testCookieValue,
+          allCookies: document.cookie,
+          responseStatus: response.status,
+          responseHeaders: Object.fromEntries(response.headers.entries()),
+          sessionApiResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Session debug test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  const testDebugSession = async () => {
+    try {
+      console.log('🧪 Testing debug session API...')
+      
+      // Set a test cookie
+      const testUser = {
+        id: 'debug-789',
+        email: 'debug2@example.com',
+        name: 'Debug User 2',
+        role: 'admin'
+      }
+      
+      const testCookieValue = JSON.stringify(testUser)
+      document.cookie = `session-token=${encodeURIComponent(testCookieValue)}; path=/; max-age=3600; samesite=lax`
+      
+      console.log('🍪 Debug cookie set:', testCookieValue)
+      console.log('🍪 All cookies:', document.cookie)
+      
+      // Test the debug session API
+      const response = await fetch('/api/debug/session', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      console.log('📥 Debug Session API response status:', response.status)
+      const data = await response.json()
+      console.log('📥 Debug Session API response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          debugSessionTest: true,
+          cookieValue: testCookieValue,
+          allCookies: document.cookie,
+          responseStatus: response.status,
+          debugSessionResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Debug session test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -325,6 +426,20 @@ export default function TestUpload() {
             className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
           >
             Test Manual Cookie
+          </button>
+          
+          <button
+            onClick={testSessionDebug}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            Test Session Debug
+          </button>
+          
+          <button
+            onClick={testDebugSession}
+            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
+          >
+            Test Debug Session API
           </button>
           
           <button
