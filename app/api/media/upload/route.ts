@@ -173,25 +173,24 @@ export async function POST(request: NextRequest) {
     const cloudinaryResult = uploadResult as any
     console.log('- Cloudinary result:', cloudinaryResult)
 
+    // Determine media type
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image'
+    
     // Save to database
     const { data: media, error: dbError } = await supabase
       .from('media')
       .insert({
         wedding_id: weddingId,
         uploaded_by: user.id,
-        file_url: cloudinaryResult.secure_url,
-        file_name: file.name, // Add the missing file_name field
-        file_type: file.type,
-        file_size: file.size,
-        description: description || '',
-        status: user.role === 'guest' ? 'pending' : 'approved', // Guests need approval
-        cloudinary_public_id: cloudinaryResult.public_id,
-        metadata: {
-          original_name: file.name,
-          width: cloudinaryResult.width,
-          height: cloudinaryResult.height,
-          format: cloudinaryResult.format,
-        }
+        type: mediaType,
+        url: cloudinaryResult.secure_url,
+        filename: file.name,
+        size: file.size,
+        mime_type: file.type,
+        is_approved: user.role !== 'guest', // Guests need approval, admins are auto-approved
+        approved_by: user.role !== 'guest' ? user.id : null,
+        approved_at: user.role !== 'guest' ? new Date().toISOString() : null,
+        tags: description ? [description] : []
       })
       .select()
       .single()
@@ -209,9 +208,10 @@ export async function POST(request: NextRequest) {
       success: true,
       media: {
         id: media.id,
-        file_url: media.file_url,
-        status: media.status,
-        description: media.description,
+        url: media.url,
+        type: media.type,
+        filename: media.filename,
+        is_approved: media.is_approved,
         uploaded_at: media.created_at
       }
     })
@@ -279,12 +279,12 @@ export async function GET(request: NextRequest) {
       .eq('wedding_id', weddingId)
 
     if (status) {
-      query = query.eq('status', status)
+      query = query.eq('is_approved', status === 'approved')
     }
 
     // Guests can only see approved media
     if (user.role === 'guest') {
-      query = query.eq('status', 'approved')
+      query = query.eq('is_approved', true)
     }
 
     const { data: media, error } = await query.order('created_at', { ascending: false })
@@ -295,13 +295,15 @@ export async function GET(request: NextRequest) {
       success: true,
       media: media.map(item => ({
         id: item.id,
-        file_url: item.file_url,
-        file_type: item.file_type,
-        description: item.description,
-        status: item.status,
+        url: item.url,
+        type: item.type,
+        filename: item.filename,
+        mime_type: item.mime_type,
+        size: item.size,
+        is_approved: item.is_approved,
         uploaded_by: item.uploaded_by_user?.name || 'Unknown',
         uploaded_at: item.created_at,
-        metadata: item.metadata
+        tags: item.tags
       }))
     })
 

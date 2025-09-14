@@ -6,13 +6,15 @@ import { toast } from 'react-hot-toast'
 
 interface MediaItem {
   id: string
-  file_url: string
-  file_type: string
-  description: string
-  status: 'pending' | 'approved' | 'rejected'
+  url: string
+  type: string
+  filename: string
+  mime_type: string
+  size: number
+  is_approved: boolean
   uploaded_by: string
   uploaded_at: string
-  metadata?: any
+  tags?: string[]
 }
 
 interface MediaGalleryProps {
@@ -33,7 +35,7 @@ export default function MediaGallery({
   const [media, setMedia] = useState<MediaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null)
-  const [filter, setFilter] = useState<'all' | 'approved' | 'pending' | 'rejected'>('all')
+  const [filter, setFilter] = useState<'all' | 'approved' | 'pending'>('all')
 
   useEffect(() => {
     fetchMedia()
@@ -44,7 +46,7 @@ export default function MediaGallery({
       setLoading(true)
       const params = new URLSearchParams({
         weddingId,
-        ...(filter !== 'all' && { status: filter })
+        ...(filter !== 'all' && { status: filter === 'approved' ? 'approved' : 'pending' })
       })
 
       const response = await fetch(`/api/media/upload?${params}`)
@@ -64,10 +66,11 @@ export default function MediaGallery({
 
   const handleStatusUpdate = async (mediaId: string, newStatus: 'approved' | 'rejected') => {
     try {
+      const isApproved = newStatus === 'approved'
       const response = await fetch(`/api/media/${mediaId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
+        body: JSON.stringify({ is_approved: isApproved })
       })
 
       const result = await response.json()
@@ -75,10 +78,10 @@ export default function MediaGallery({
       if (result.success) {
         setMedia(prev => prev.map(item => 
           item.id === mediaId 
-            ? { ...item, status: newStatus }
+            ? { ...item, is_approved: isApproved }
             : item
         ))
-        onMediaUpdate?.(mediaId, { status: newStatus })
+        onMediaUpdate?.(mediaId, { is_approved: isApproved })
         toast.success(`Media ${newStatus}`)
       } else {
         toast.error(result.message || 'Failed to update media')
@@ -118,22 +121,12 @@ export default function MediaGallery({
     return userRole === 'super_admin' || userRole === 'admin'
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'text-green-600 bg-green-100'
-      case 'pending': return 'text-yellow-600 bg-yellow-100'
-      case 'rejected': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
-    }
+  const getStatusColor = (isApproved: boolean) => {
+    return isApproved ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100'
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved': return <Eye className="h-4 w-4" />
-      case 'pending': return <EyeOff className="h-4 w-4" />
-      case 'rejected': return <EyeOff className="h-4 w-4" />
-      default: return <EyeOff className="h-4 w-4" />
-    }
+  const getStatusIcon = (isApproved: boolean) => {
+    return isApproved ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />
   }
 
   if (loading) {
@@ -177,7 +170,7 @@ export default function MediaGallery({
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Approved ({media.filter(m => m.status === 'approved').length})
+            Approved ({media.filter(m => m.is_approved).length})
           </button>
           {canViewPending() && (
             <button
@@ -188,7 +181,7 @@ export default function MediaGallery({
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Pending ({media.filter(m => m.status === 'pending').length})
+              Pending ({media.filter(m => !m.is_approved).length})
             </button>
           )}
         </div>
@@ -203,10 +196,10 @@ export default function MediaGallery({
           >
             {/* Media Preview */}
             <div className="aspect-square relative overflow-hidden">
-              {item.file_type.startsWith('image/') ? (
+              {item.mime_type.startsWith('image/') ? (
                 <img
-                  src={item.file_url}
-                  alt={item.description || 'Media'}
+                  src={item.url}
+                  alt={item.filename || 'Media'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 />
               ) : (
@@ -216,9 +209,9 @@ export default function MediaGallery({
               )}
 
               {/* Status Badge */}
-              <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(item.status)}`}>
-                {getStatusIcon(item.status)}
-                <span className="capitalize">{item.status}</span>
+              <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(item.is_approved)}`}>
+                {getStatusIcon(item.is_approved)}
+                <span className="capitalize">{item.is_approved ? 'approved' : 'pending'}</span>
               </div>
 
               {/* Actions Overlay */}
@@ -231,7 +224,7 @@ export default function MediaGallery({
                     <Eye className="h-4 w-4 text-gray-700" />
                   </button>
                   <button
-                    onClick={() => window.open(item.file_url, '_blank')}
+                    onClick={() => window.open(item.url, '_blank')}
                     className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
                   >
                     <Download className="h-4 w-4 text-gray-700" />
@@ -258,7 +251,7 @@ export default function MediaGallery({
             </div>
 
             {/* Admin Actions */}
-            {canModifyMedia(item) && item.status === 'pending' && (
+            {canModifyMedia(item) && !item.is_approved && (
               <div className="px-3 pb-3 flex space-x-2">
                 <button
                   onClick={() => handleStatusUpdate(item.id, 'approved')}
@@ -294,15 +287,15 @@ export default function MediaGallery({
               </button>
             </div>
             <div className="p-4">
-              {selectedMedia.file_type.startsWith('image/') ? (
+              {selectedMedia.mime_type.startsWith('image/') ? (
                 <img
-                  src={selectedMedia.file_url}
-                  alt={selectedMedia.description || 'Media'}
+                  src={selectedMedia.url}
+                  alt={selectedMedia.filename || 'Media'}
                   className="max-w-full max-h-[70vh] object-contain"
                 />
               ) : (
                 <video
-                  src={selectedMedia.file_url}
+                  src={selectedMedia.url}
                   controls
                   className="max-w-full max-h-[70vh]"
                 />

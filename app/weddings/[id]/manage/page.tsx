@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/app/components/AuthProvider'
 import { useRouter, useParams } from 'next/navigation'
 import { toast } from 'react-hot-toast'
+import { getWeddingUrl } from '@/app/lib/subdomain-utils'
 import { 
   ArrowLeft,
   Save,
@@ -14,7 +15,10 @@ import {
   Settings,
   Heart,
   Trash2,
-  Globe
+  Globe,
+  Copy,
+  Check,
+  ExternalLink
 } from 'lucide-react'
 
 interface Wedding {
@@ -24,6 +28,7 @@ interface Wedding {
   location: string
   description: string
   code: string
+  subdomain: string
   status: 'draft' | 'active' | 'completed' | 'archived'
   guestCount: number
   photoCount: number
@@ -40,6 +45,7 @@ export default function WeddingManagePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [wedding, setWedding] = useState<Wedding | null>(null)
+  const [copied, setCopied] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     date: '',
@@ -137,6 +143,18 @@ export default function WeddingManagePage() {
     }
   }
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      toast.success('Copied to clipboard!')
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+      toast.error('Failed to copy to clipboard')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -220,6 +238,64 @@ export default function WeddingManagePage() {
               </div>
             </div>
           </div>
+
+          {/* Wedding URL Section - Only for Super Admins */}
+          {user?.role === 'super_admin' && (
+            <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center space-x-3 mb-4">
+                <Globe className="w-6 h-6 text-blue-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Wedding URL</h2>
+              </div>
+              
+              {wedding?.subdomain ? (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-1 bg-white rounded-lg p-4 border border-gray-200">
+                      <p className="text-sm text-gray-600 mb-1">Your wedding is accessible at:</p>
+                      <p className="font-mono text-lg text-gray-900 break-all">
+                        {getWeddingUrl(wedding.subdomain)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(getWeddingUrl(wedding.subdomain))}
+                      className="p-3 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Copy URL"
+                    >
+                      {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <a
+                      href={getWeddingUrl(wedding.subdomain)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Visit wedding site</span>
+                    </a>
+                    <span className="text-sm text-gray-500">
+                      Share this URL with your guests
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <div className="text-4xl mb-4">🌐</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Subdomain Set</h3>
+                  <p className="text-gray-600 mb-4">Your wedding doesn't have a custom subdomain yet.</p>
+                  <button
+                    onClick={() => router.push(`/weddings/${weddingId}/subdomain`)}
+                    className="inline-flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>Set Up Subdomain</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSave} className="px-8 py-6">

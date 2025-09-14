@@ -117,7 +117,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { status, description } = body
+    const { is_approved, description } = body
 
     // Get media with wedding info
     const { data: media, error: fetchError } = await supabase
@@ -148,18 +148,22 @@ export async function PUT(
       }, { status: 403 })
     }
 
-    // Only super admins and admins can change status
-    if (status && !['super_admin', 'admin'].includes(user.role)) {
+    // Only super admins and admins can change approval status
+    if (is_approved !== undefined && !['super_admin', 'admin'].includes(user.role)) {
       return NextResponse.json({ 
         success: false, 
-        message: 'Only admins can change media status' 
+        message: 'Only admins can change media approval status' 
       }, { status: 403 })
     }
 
     // Update media
     const updateData: any = {}
     if (description !== undefined) updateData.description = description
-    if (status !== undefined) updateData.status = status
+    if (is_approved !== undefined) {
+      updateData.is_approved = is_approved
+      updateData.approved_by = is_approved ? user.id : null
+      updateData.approved_at = is_approved ? new Date().toISOString() : null
+    }
 
     const { data: updatedMedia, error: updateError } = await supabase
       .from('media')
@@ -174,8 +178,8 @@ export async function PUT(
       success: true,
       media: {
         id: updatedMedia.id,
-        file_url: updatedMedia.file_url,
-        status: updatedMedia.status,
+        url: updatedMedia.url,
+        is_approved: updatedMedia.is_approved,
         description: updatedMedia.description,
         updated_at: updatedMedia.updated_at
       }
