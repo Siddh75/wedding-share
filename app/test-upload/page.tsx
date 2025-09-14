@@ -624,6 +624,35 @@ export default function TestUpload() {
     }
   }
 
+  const examineUsersTable = async () => {
+    try {
+      console.log('🧪 Examining users and weddings tables...')
+      
+      const response = await fetch('/api/debug/database/examine-users', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      
+      console.log('📥 Examine users response status:', response.status)
+      const data = await response.json()
+      console.log('📥 Examine users response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          examineUsersTest: true,
+          responseStatus: response.status,
+          examineUsersResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Examine users test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -740,6 +769,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
           >
             Examine Existing Media Records
+          </button>
+          
+          <button
+            onClick={examineUsersTable}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Examine Users & Weddings Tables
           </button>
           
           <button

@@ -36,22 +36,15 @@ export async function POST(request: NextRequest) {
     // Check if user already exists
     const { data: existingUser } = await supabaseAdmin
       .from('users')
-      .select('id, email_confirmed')
+      .select('id')
       .eq('email', email)
       .single()
 
     if (existingUser) {
-      if (existingUser.email_confirmed) {
-        return NextResponse.json(
-          { success: false, message: 'User with this email already exists' },
-          { status: 409 }
-        )
-      } else {
-        return NextResponse.json(
-          { success: false, message: 'Please check your email to complete your account setup' },
-          { status: 409 }
-        )
-      }
+      return NextResponse.json(
+        { success: false, message: 'User with this email already exists' },
+        { status: 409 }
+      )
     }
 
     // Store wedding data temporarily (we'll use a simple approach with a temporary table or JSON storage)
