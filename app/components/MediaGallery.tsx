@@ -78,7 +78,7 @@ export default function MediaGallery({
       if (result.success) {
         setMedia(prev => prev.map(item => 
           item.id === mediaId 
-            ? { ...item, is_approved: isApproved }
+            ? { ...item, status: isApproved ? 'approved' : 'pending' }
             : item
         ))
         onMediaUpdate?.(mediaId, { is_approved: isApproved })
@@ -170,7 +170,7 @@ export default function MediaGallery({
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            Approved ({media.filter(m => m.is_approved).length})
+            Approved ({media.filter(m => m.status === 'approved').length})
           </button>
           {canViewPending() && (
             <button
@@ -181,7 +181,7 @@ export default function MediaGallery({
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Pending ({media.filter(m => !m.is_approved).length})
+              Pending ({media.filter(m => m.status !== 'approved').length})
             </button>
           )}
         </div>
