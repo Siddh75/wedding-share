@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/app/lib/supabase'
+import { supabaseAdmin } from '@/app/lib/supabase'
 import { validateSubdomain } from '@/app/lib/subdomain-utils'
 
 export async function GET(request: NextRequest) {
@@ -24,10 +24,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const supabase = createClient()
-
     // Check for uniqueness
-    let query = supabase
+    let query = supabaseAdmin
       .from('weddings')
       .select('id')
       .eq('subdomain', subdomain)

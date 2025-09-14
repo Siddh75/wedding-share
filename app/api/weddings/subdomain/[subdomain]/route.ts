@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/app/lib/supabase'
+import { supabaseAdmin } from '@/app/lib/supabase'
 
 export async function GET(
   request: NextRequest,
@@ -15,10 +15,8 @@ export async function GET(
       )
     }
 
-    const supabase = createClient()
-
     // Fetch wedding by subdomain
-    const { data: wedding, error } = await supabase
+    const { data: wedding, error } = await supabaseAdmin
       .from('weddings')
       .select(`
         id,
@@ -42,13 +40,13 @@ export async function GET(
     }
 
     // Get wedding stats
-    const { data: guestCount } = await supabase
+    const { data: guestCount } = await supabaseAdmin
       .from('wedding_members')
       .select('id', { count: 'exact' })
       .eq('wedding_id', wedding.id)
       .eq('is_active', true)
 
-    const { data: photoCount } = await supabase
+    const { data: photoCount } = await supabaseAdmin
       .from('media')
       .select('id', { count: 'exact' })
       .eq('wedding_id', wedding.id)
