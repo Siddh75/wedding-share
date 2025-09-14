@@ -3,11 +3,10 @@ import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔐 Session API: Checking session... [UPDATED VERSION - v2.0]')
+    console.log('🔐 Session API: Checking session... [UPDATED VERSION - v3.0]')
     console.log('🔐 Session API: Request URL:', request.url)
-    console.log('🔐 Session API: Request headers:', Object.fromEntries(request.headers.entries()))
     
-    // Try reading cookies from request headers first
+    // Get cookie header directly (same logic as working debug endpoints)
     const cookieHeader = request.headers.get('cookie')
     console.log('🔐 Session API: Cookie header:', cookieHeader)
     
@@ -25,14 +24,6 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Fallback to cookies() function
-    if (!sessionToken) {
-      console.log('🔐 Session API: Trying cookies() function...')
-      const cookieStore = await cookies()
-      sessionToken = cookieStore.get('session-token')
-      console.log('🔐 Session API: Session token from cookies():', sessionToken)
-    }
-    
     console.log('🔐 Session API: Session token found:', !!sessionToken)
     console.log('🔐 Session API: Session token value:', sessionToken?.value)
     
@@ -40,7 +31,7 @@ export async function GET(request: NextRequest) {
       console.log('🔐 Session API: No session token found')
       return NextResponse.json({ 
         authenticated: false,
-        version: 'v2.0',
+        version: 'v3.0',
         debug: {
           cookieHeader: cookieHeader,
           sessionTokenFound: false,
@@ -61,7 +52,7 @@ export async function GET(request: NextRequest) {
           name: user.name,
           role: user.role,
         },
-        version: 'v2.0',
+        version: 'v3.0',
         debug: {
           cookieHeader: cookieHeader,
           sessionTokenFound: !!sessionToken,
@@ -71,10 +62,27 @@ export async function GET(request: NextRequest) {
     } catch (parseError) {
       console.error('❌ Session token parse error:', parseError)
       console.error('❌ Session token value that failed to parse:', sessionToken.value)
-      return NextResponse.json({ authenticated: false })
+      return NextResponse.json({ 
+        authenticated: false,
+        version: 'v3.0',
+        error: 'Parse error',
+        debug: {
+          cookieHeader: cookieHeader,
+          sessionTokenFound: !!sessionToken,
+          sessionTokenValue: sessionToken?.value,
+          parseError: parseError instanceof Error ? parseError.message : 'Unknown error'
+        }
+      })
     }
   } catch (error) {
     console.error('❌ Session check error:', error)
-    return NextResponse.json({ authenticated: false })
+    return NextResponse.json({ 
+      authenticated: false,
+      version: 'v3.0',
+      error: 'Server error',
+      debug: {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    })
   }
 }
