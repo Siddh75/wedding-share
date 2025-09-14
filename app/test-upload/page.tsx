@@ -366,6 +366,55 @@ export default function TestUpload() {
     }
   }
 
+  const testSessionVersion = async () => {
+    try {
+      console.log('🧪 Testing session version API...')
+      
+      // Set a test cookie
+      const testUser = {
+        id: 'version-123',
+        email: 'version@example.com',
+        name: 'Version User',
+        role: 'admin'
+      }
+      
+      const testCookieValue = JSON.stringify(testUser)
+      document.cookie = `session-token=${encodeURIComponent(testCookieValue)}; path=/; max-age=3600; samesite=lax`
+      
+      console.log('🍪 Version cookie set:', testCookieValue)
+      console.log('🍪 All cookies:', document.cookie)
+      
+      // Test the session version API
+      const response = await fetch('/api/debug/session-version', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      console.log('📥 Session Version API response status:', response.status)
+      const data = await response.json()
+      console.log('📥 Session Version API response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          sessionVersionTest: true,
+          cookieValue: testCookieValue,
+          allCookies: document.cookie,
+          responseStatus: response.status,
+          sessionVersionResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Session version test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -440,6 +489,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
           >
             Test Debug Session API
+          </button>
+          
+          <button
+            onClick={testSessionVersion}
+            className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+          >
+            Test Session Version API
           </button>
           
           <button
