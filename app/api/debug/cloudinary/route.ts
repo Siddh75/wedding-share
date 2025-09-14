@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
 
 // Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({
+    secure: true
+  })
+} else {
+  // Fallback to individual environment variables
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  })
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,6 +44,7 @@ export async function GET(request: NextRequest) {
           secure_url: testUpload.secure_url
         },
         config: {
+          cloudinary_url: process.env.CLOUDINARY_URL ? 'Set' : 'Missing',
           cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
           api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing',
           api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing',
