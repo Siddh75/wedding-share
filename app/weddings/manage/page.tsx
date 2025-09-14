@@ -30,7 +30,7 @@ interface Wedding {
 }
 
 export default function WeddingManagement() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
