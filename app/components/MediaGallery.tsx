@@ -196,11 +196,17 @@ export default function MediaGallery({
           >
             {/* Media Preview */}
             <div className="aspect-square relative overflow-hidden">
-              {item.mime_type.startsWith('image/') ? (
+              {item.mime_type?.startsWith('image/') ? (
                 <img
                   src={item.url}
                   alt={item.filename || 'Media'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                />
+              ) : item.mime_type?.startsWith('video/') ? (
+                <video
+                  src={item.url}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                  controls
                 />
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -287,18 +293,22 @@ export default function MediaGallery({
               </button>
             </div>
             <div className="p-4">
-              {selectedMedia.mime_type.startsWith('image/') ? (
+              {selectedMedia.mime_type?.startsWith('image/') ? (
                 <img
                   src={selectedMedia.url}
                   alt={selectedMedia.filename || 'Media'}
                   className="max-w-full max-h-[70vh] object-contain"
                 />
-              ) : (
+              ) : selectedMedia.mime_type?.startsWith('video/') ? (
                 <video
                   src={selectedMedia.url}
                   controls
                   className="max-w-full max-h-[70vh]"
                 />
+              ) : (
+                <div className="max-w-full max-h-[70vh] flex items-center justify-center bg-gray-100">
+                  <span className="text-gray-500">Preview not available</span>
+                </div>
               )}
             </div>
           </div>
