@@ -186,7 +186,10 @@ export default function TestUpload() {
             data: {
               cookieFound: true,
               sessionValue: sessionValue,
-              parsedSession: parsedSession
+              parsedSession: parsedSession,
+              domain: window.location.hostname,
+              protocol: window.location.protocol,
+              fullUrl: window.location.href
             }
           })
         } catch (parseError) {
@@ -205,12 +208,57 @@ export default function TestUpload() {
           status: 200,
           data: {
             cookieFound: false,
-            allCookies: cookies
+            allCookies: cookies,
+            domain: window.location.hostname,
+            protocol: window.location.protocol,
+            fullUrl: window.location.href
           }
         })
       }
     } catch (error) {
       console.error('❌ Session test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
+  const testManualCookie = async () => {
+    try {
+      console.log('🧪 Testing manual cookie setting...')
+      
+      // Manually set a test cookie
+      const testUser = {
+        id: 'test-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'admin'
+      }
+      
+      const testCookieValue = JSON.stringify(testUser)
+      document.cookie = `session-token=${encodeURIComponent(testCookieValue)}; path=/; max-age=3600; samesite=lax`
+      
+      console.log('🍪 Manual cookie set:', testCookieValue)
+      console.log('🍪 Current cookies after setting:', document.cookie)
+      
+      // Now test if the session API can read it
+      const response = await fetch('/api/auth/session', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      console.log('📥 Session API response after manual cookie:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          manualCookieSet: true,
+          cookieValue: testCookieValue,
+          sessionApiResponse: data,
+          allCookies: document.cookie
+        }
+      })
+    } catch (error) {
+      console.error('❌ Manual cookie test error:', error)
       setResult({
         error: error instanceof Error ? error.message : 'Unknown error'
       })
@@ -270,6 +318,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
           >
             Test Session Cookie
+          </button>
+          
+          <button
+            onClick={testManualCookie}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Test Manual Cookie
           </button>
           
           <button
