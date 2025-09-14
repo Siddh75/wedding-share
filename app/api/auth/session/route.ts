@@ -7,16 +7,34 @@ export async function GET(request: NextRequest) {
     console.log('🔐 Session API: Request URL:', request.url)
     console.log('🔐 Session API: Request headers:', Object.fromEntries(request.headers.entries()))
     
-    const cookieStore = await cookies()
-    const sessionToken = cookieStore.get('session-token')
+    // Try reading cookies from request headers first
+    const cookieHeader = request.headers.get('cookie')
+    console.log('🔐 Session API: Cookie header:', cookieHeader)
+    
+    let sessionToken = null
+    
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').map(c => c.trim())
+      console.log('🔐 Session API: Parsed cookies from header:', cookies)
+      
+      const sessionCookie = cookies.find(c => c.startsWith('session-token='))
+      if (sessionCookie) {
+        const sessionValue = sessionCookie.split('=')[1]
+        console.log('🔐 Session API: Session value from header:', sessionValue)
+        sessionToken = { value: sessionValue }
+      }
+    }
+    
+    // Fallback to cookies() function
+    if (!sessionToken) {
+      console.log('🔐 Session API: Trying cookies() function...')
+      const cookieStore = await cookies()
+      sessionToken = cookieStore.get('session-token')
+      console.log('🔐 Session API: Session token from cookies():', sessionToken)
+    }
     
     console.log('🔐 Session API: Session token found:', !!sessionToken)
     console.log('🔐 Session API: Session token value:', sessionToken?.value)
-    console.log('🔐 Session API: All cookies:', cookieStore.getAll().map(c => ({ 
-      name: c.name, 
-      hasValue: !!c.value,
-      value: c.value?.substring(0, 50) + (c.value && c.value.length > 50 ? '...' : '')
-    })))
     
     if (!sessionToken) {
       console.log('🔐 Session API: No session token found')
