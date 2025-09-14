@@ -132,14 +132,14 @@ export async function POST(request: NextRequest) {
           wedding_id: weddingId,
           uploaded_by: user.id,
           type: mediaType,
-          url: placeholderUrl,
-          filename: file.name,
-          size: file.size,
-          mime_type: file.type,
-          is_approved: true, // Auto-approve for testing
+          url: placeholderUrl
+          // filename: file.name, // Removed - column doesn't exist
+          // size: file.size, // Removed - column doesn't exist
+          // mime_type: file.type, // Removed - column doesn't exist
+          // is_approved: true, // Removed - column doesn't exist
           // approved_by: user.id, // Removed - column doesn't exist
           // approved_at: new Date().toISOString(), // Removed - column doesn't exist
-          tags: description ? [description] : []
+          // tags: description ? [description] : [] // Removed - column doesn't exist
         })
         .select()
         .single()
