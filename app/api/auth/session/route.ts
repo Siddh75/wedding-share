@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔐 Session API: Checking session...')
+    console.log('🔐 Session API: Checking session... [UPDATED VERSION - v2.0]')
     console.log('🔐 Session API: Request URL:', request.url)
     console.log('🔐 Session API: Request headers:', Object.fromEntries(request.headers.entries()))
     
@@ -38,7 +38,15 @@ export async function GET(request: NextRequest) {
     
     if (!sessionToken) {
       console.log('🔐 Session API: No session token found')
-      return NextResponse.json({ authenticated: false })
+      return NextResponse.json({ 
+        authenticated: false,
+        version: 'v2.0',
+        debug: {
+          cookieHeader: cookieHeader,
+          sessionTokenFound: false,
+          reason: 'No session token found in cookies'
+        }
+      })
     }
 
     try {
@@ -52,6 +60,12 @@ export async function GET(request: NextRequest) {
           email: user.email,
           name: user.name,
           role: user.role,
+        },
+        version: 'v2.0',
+        debug: {
+          cookieHeader: cookieHeader,
+          sessionTokenFound: !!sessionToken,
+          sessionTokenValue: sessionToken?.value
         }
       })
     } catch (parseError) {
