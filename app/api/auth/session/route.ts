@@ -44,7 +44,10 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const user = JSON.parse(sessionToken.value)
+      // URL decode the session token value before parsing JSON
+      const decodedValue = decodeURIComponent(sessionToken.value)
+      console.log('🔐 Session API: Decoded value:', decodedValue)
+      const user = JSON.parse(decodedValue)
       console.log('🔐 Session API: Parsed user:', user)
       
       return NextResponse.json({
@@ -59,7 +62,8 @@ export async function GET(request: NextRequest) {
         debug: {
           cookieHeader: cookieHeader,
           sessionTokenFound: !!sessionToken,
-          sessionTokenValue: sessionToken?.value
+          sessionTokenValue: sessionToken?.value,
+          decodedValue: sessionToken?.value ? decodeURIComponent(sessionToken.value) : null
         }
       })
     } catch (parseError) {
