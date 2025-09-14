@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
           mime_type: file.type,
           is_approved: true, // Auto-approve for testing
           approved_by: user.id,
-          approved_at: new Date().toISOString(),
+          // approved_at: new Date().toISOString(), // Removed - column doesn't exist
           tags: description ? [description] : []
         })
         .select()

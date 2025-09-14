@@ -537,6 +537,35 @@ export default function TestUpload() {
     }
   }
 
+  const testMediaTable = async () => {
+    try {
+      console.log('🧪 Testing media table structure...')
+      
+      const response = await fetch('/api/debug/database/media-test', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      
+      console.log('📥 Media table test response status:', response.status)
+      const data = await response.json()
+      console.log('📥 Media table test response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          mediaTableTest: true,
+          responseStatus: response.status,
+          mediaTableResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Media table test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -632,6 +661,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
           >
             Test Simple Upload API
+          </button>
+          
+          <button
+            onClick={testMediaTable}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Test Media Table Structure
           </button>
           
           <button
