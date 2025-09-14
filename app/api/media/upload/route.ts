@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { supabaseAdmin } from '@/app/lib/supabase'
 import { v2 as cloudinary } from 'cloudinary'
 
 // Configure Cloudinary
@@ -9,44 +9,28 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Debug Cloudinary configuration
+console.log('🔍 Cloudinary config check:')
+console.log('- Cloud name:', process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing')
+console.log('- API key:', process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing')
+console.log('- API secret:', process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing')
 
 // Helper function to get user from session
 async function getUserFromSession(request: NextRequest) {
-  const sessionToken = request.cookies.get('session-token')?.value
-  if (!sessionToken) return null
-
   try {
-    // Try to parse as JSON first (for development mode)
-    try {
-      const userData = JSON.parse(sessionToken)
-      console.log('✅ Parsed session token as JSON:', userData)
-      return userData
-    } catch (jsonError) {
-      console.log('⚠️ Session token is not JSON, trying as Supabase token')
+    const cookieStore = await import('next/headers').then(m => m.cookies())
+    const sessionToken = cookieStore.get('session-token')
+    
+    if (!sessionToken) {
+      console.log('❌ No session token found')
+      return null
     }
-
-    // If not JSON, try as Supabase session token
-    const { data: { user }, error } = await supabase.auth.getUser(sessionToken)
-    if (error || !user) return null
-
-    // Get user role from our users table
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    return {
-      id: user.id,
-      email: user.email,
-      role: userData?.role || 'guest'
-    }
+    
+    const user = JSON.parse(sessionToken.value)
+    console.log('✅ Parsed user from session:', user)
+    return user
   } catch (error) {
-    console.error('Error getting user from session:', error)
+    console.error('❌ Error parsing session:', error)
     return null
   }
 }
@@ -105,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has access to this wedding
-    const { data: wedding } = await supabase
+    const { data: wedding } = await supabaseAdmin
       .from('weddings')
       .select('id, super_admin_id, wedding_admin_ids')
       .eq('id', weddingId)
@@ -177,7 +161,7 @@ export async function POST(request: NextRequest) {
     const mediaType = file.type.startsWith('video/') ? 'video' : 'image'
     
     // Save to database
-    const { data: media, error: dbError } = await supabase
+    const { data: media, error: dbError } = await supabaseAdmin
       .from('media')
       .insert({
         wedding_id: weddingId,
@@ -244,7 +228,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has access to this wedding
-    const { data: wedding } = await supabase
+    const { data: wedding } = await supabaseAdmin
       .from('weddings')
       .select('id, super_admin_id, wedding_admin_ids')
       .eq('id', weddingId)
@@ -270,7 +254,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query
-    let query = supabase
+    let query = supabaseAdmin
       .from('media')
       .select(`
         *,
