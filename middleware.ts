@@ -18,6 +18,8 @@ export function middleware(request: NextRequest) {
     url.pathname.startsWith('/demo') ||
     url.pathname.startsWith('/test-confirmation') ||
     url.pathname.startsWith('/test-inputs') ||
+    url.pathname.startsWith('/dashboard') ||
+    url.pathname.startsWith('/weddings') ||
     url.pathname === '/'
   ) {
     return NextResponse.next()

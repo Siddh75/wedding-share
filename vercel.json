@@ -3,5 +3,15 @@
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard"
+    },
+    {
+      "source": "/weddings/manage",
+      "destination": "/weddings/manage"
+    }
+  ]
 }
