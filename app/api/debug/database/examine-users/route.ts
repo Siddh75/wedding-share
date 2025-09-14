@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       .select('*')
       .limit(1)
     
-    let weddingColumns = []
-    let sampleWeddingRecord = null
+    let weddingColumns: string[] = []
+    let sampleWeddingRecord: any = null
     
     if (!weddingError && weddingRecords && weddingRecords.length > 0) {
       sampleWeddingRecord = weddingRecords[0]
