@@ -6,15 +6,15 @@ import { toast } from 'react-hot-toast'
 
 interface MediaItem {
   id: string
-  url: string
-  type: string
-  filename: string
-  mime_type: string
-  size: number
-  is_approved: boolean
+  file_url: string
+  file_name: string
+  file_type: string
+  file_size: number
+  status: string
   uploaded_by: string
-  uploaded_at: string
-  tags?: string[]
+  created_at: string
+  description?: string
+  metadata?: any
 }
 
 interface MediaGalleryProps {
@@ -196,15 +196,15 @@ export default function MediaGallery({
           >
             {/* Media Preview */}
             <div className="aspect-square relative overflow-hidden">
-              {item.mime_type?.startsWith('image/') ? (
+              {item.file_type?.startsWith('image/') ? (
                 <img
-                  src={item.url}
-                  alt={item.filename || 'Media'}
+                  src={item.file_url}
+                  alt={item.file_name || 'Media'}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                 />
-              ) : item.mime_type?.startsWith('video/') ? (
+              ) : item.file_type?.startsWith('video/') ? (
                 <video
-                  src={item.url}
+                  src={item.file_url}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   controls
                 />
@@ -215,9 +215,9 @@ export default function MediaGallery({
               )}
 
               {/* Status Badge */}
-              <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(item.is_approved)}`}>
-                {getStatusIcon(item.is_approved)}
-                <span className="capitalize">{item.is_approved ? 'approved' : 'pending'}</span>
+              <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getStatusColor(item.status === 'approved')}`}>
+                {getStatusIcon(item.status === 'approved')}
+                <span className="capitalize">{item.status}</span>
               </div>
 
               {/* Actions Overlay */}
@@ -230,7 +230,7 @@ export default function MediaGallery({
                     <Eye className="h-4 w-4 text-gray-700" />
                   </button>
                   <button
-                    onClick={() => window.open(item.url, '_blank')}
+                    onClick={() => window.open(item.file_url, '_blank')}
                     className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
                   >
                     <Download className="h-4 w-4 text-gray-700" />
@@ -249,15 +249,15 @@ export default function MediaGallery({
             {/* Media Info */}
             <div className="p-3">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {item.filename || 'Untitled'}
+                {item.file_name || 'Untitled'}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                by {item.uploaded_by} • {new Date(item.uploaded_at).toLocaleDateString()}
+                by {item.uploaded_by} • {new Date(item.created_at).toLocaleDateString()}
               </p>
             </div>
 
             {/* Admin Actions */}
-            {canModifyMedia(item) && !item.is_approved && (
+            {canModifyMedia(item) && item.status !== 'approved' && (
               <div className="px-3 pb-3 flex space-x-2">
                 <button
                   onClick={() => handleStatusUpdate(item.id, 'approved')}

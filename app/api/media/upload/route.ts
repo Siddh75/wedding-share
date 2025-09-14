@@ -231,15 +231,19 @@ export async function POST(request: NextRequest) {
       .insert({
         wedding_id: weddingId,
         uploaded_by: user.id,
-        type: mediaType,
-        url: mediaUrl,
-        filename: file.name,
-        size: file.size,
-        mime_type: file.type,
-        is_approved: user.role !== 'guest', // Guests need approval, admins are auto-approved
-        // approved_by: user.role !== 'guest' ? user.id : null, // Removed - column doesn't exist
-        // approved_at: user.role !== 'guest' ? new Date().toISOString() : null, // Removed - column doesn't exist
-        tags: description ? [description] : []
+        file_url: mediaUrl,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        status: user.role !== 'guest' ? 'approved' : 'pending', // Guests need approval, admins are auto-approved
+        description: description || file.name,
+        cloudinary_public_id: (uploadResult as any)?.public_id || null,
+        metadata: {
+          original_name: file.name,
+          width: (uploadResult as any)?.width || null,
+          height: (uploadResult as any)?.height || null,
+          format: (uploadResult as any)?.format || null
+        }
       })
       .select()
       .single()

@@ -160,9 +160,7 @@ export async function PUT(
     const updateData: any = {}
     if (description !== undefined) updateData.description = description
     if (is_approved !== undefined) {
-      updateData.is_approved = is_approved
-      // updateData.approved_by = is_approved ? user.id : null // Removed - column doesn't exist
-      // updateData.approved_at = is_approved ? new Date().toISOString() : null // Removed - column doesn't exist
+      updateData.status = is_approved ? 'approved' : 'pending'
     }
 
     const { data: updatedMedia, error: updateError } = await supabase
