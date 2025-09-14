@@ -595,6 +595,35 @@ export default function TestUpload() {
     }
   }
 
+  const examineMediaTable = async () => {
+    try {
+      console.log('🧪 Examining existing media records...')
+      
+      const response = await fetch('/api/debug/database/examine-media', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      
+      console.log('📥 Examine media response status:', response.status)
+      const data = await response.json()
+      console.log('📥 Examine media response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          examineMediaTest: true,
+          responseStatus: response.status,
+          examineMediaResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Examine media test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -704,6 +733,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
           >
             Test Basic Media Table
+          </button>
+          
+          <button
+            onClick={examineMediaTable}
+            className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
+          >
+            Examine Existing Media Records
           </button>
           
           <button
