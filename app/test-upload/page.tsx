@@ -120,6 +120,19 @@ export default function TestUpload() {
     }
   }
 
+  const testCloudinary = async () => {
+    try {
+      const response = await fetch('/api/debug/cloudinary')
+      const data = await response.json()
+      console.log('☁️ Cloudinary test response:', data)
+      setResult({
+        cloudinary: data
+      })
+    } catch (error) {
+      console.error('❌ Cloudinary test error:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -152,6 +165,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             Check Environment Variables
+          </button>
+          
+          <button
+            onClick={testCloudinary}
+            className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700"
+          >
+            Test Cloudinary Connection
           </button>
           
           <button

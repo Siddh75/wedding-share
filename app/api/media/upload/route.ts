@@ -156,6 +156,11 @@ export async function POST(request: NextRequest) {
           resource_type: 'auto',
           folder: `weddings/${weddingId}`,
           public_id: `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9]/g, '_')}`,
+          upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET || 'wedding_photos',
+          transformation: [
+            { quality: 'auto' },
+            { fetch_format: 'auto' }
+          ]
         },
         (error, result) => {
           if (error) {
