@@ -476,6 +476,67 @@ export default function TestUpload() {
     }
   }
 
+  const testSimpleUpload = async () => {
+    try {
+      console.log('🧪 Testing simple upload API...')
+      
+      // Set a test cookie
+      const testUser = {
+        id: 'simple-123',
+        email: 'simple@example.com',
+        name: 'Simple User',
+        role: 'admin'
+      }
+      
+      const testCookieValue = JSON.stringify(testUser)
+      document.cookie = `session-token=${encodeURIComponent(testCookieValue)}; path=/; max-age=3600; samesite=lax`
+      
+      console.log('🍪 Simple cookie set:', testCookieValue)
+      console.log('🍪 All cookies:', document.cookie)
+      
+      // Create a simple test file
+      const testFile = new File(['simple test content'], 'simple-test.txt', { type: 'text/plain' })
+      
+      const formData = new FormData()
+      formData.append('file', testFile)
+      formData.append('weddingId', '0841b34a-d327-4f87-8a42-b07050468ded')
+      formData.append('description', 'Simple test upload')
+      
+      console.log('🧪 Testing simple upload API...')
+      console.log('🧪 File details:', {
+        name: testFile.name,
+        size: testFile.size,
+        type: testFile.type
+      })
+      
+      const response = await fetch('/api/media/upload-simple', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
+      
+      console.log('📥 Simple upload response status:', response.status)
+      const data = await response.json()
+      console.log('📥 Simple upload response data:', data)
+      
+      setResult({
+        status: 200,
+        data: {
+          simpleUploadTest: true,
+          cookieValue: testCookieValue,
+          allCookies: document.cookie,
+          responseStatus: response.status,
+          simpleUploadResponse: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Simple upload test error:', error)
+      setResult({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -564,6 +625,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700"
           >
             Test Minimal Upload API
+          </button>
+          
+          <button
+            onClick={testSimpleUpload}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          >
+            Test Simple Upload API
           </button>
           
           <button
