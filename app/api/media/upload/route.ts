@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/app/lib/supabase'
 import { v2 as cloudinary } from 'cloudinary'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 // Configure Cloudinary
 if (process.env.CLOUDINARY_URL) {
   cloudinary.config({
@@ -25,15 +29,31 @@ console.log('- API secret:', process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missin
 // Helper function to get user from session
 async function getUserFromSession(request: NextRequest) {
   try {
-    const cookieStore = await import('next/headers').then(m => m.cookies())
-    const sessionToken = cookieStore.get('session-token')
+    // Read cookie from request headers (same logic as working session API)
+    const cookieHeader = request.headers.get('cookie')
+    console.log('🔍 Upload API: Cookie header:', cookieHeader)
     
-    if (!sessionToken) {
-      console.log('❌ No session token found')
+    if (!cookieHeader) {
+      console.log('❌ No cookie header found')
       return null
     }
     
-    const user = JSON.parse(sessionToken.value)
+    const cookies = cookieHeader.split(';').map(c => c.trim())
+    const sessionCookie = cookies.find(c => c.startsWith('session-token='))
+    
+    if (!sessionCookie) {
+      console.log('❌ No session-token cookie found')
+      return null
+    }
+    
+    const sessionValue = sessionCookie.split('=')[1]
+    console.log('🔍 Upload API: Session value:', sessionValue)
+    
+    // URL decode and parse JSON
+    const decodedValue = decodeURIComponent(sessionValue)
+    console.log('🔍 Upload API: Decoded value:', decodedValue)
+    
+    const user = JSON.parse(decodedValue)
     console.log('✅ Parsed user from session:', user)
     return user
   } catch (error) {
