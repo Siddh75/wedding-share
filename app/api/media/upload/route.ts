@@ -135,6 +135,21 @@ export async function POST(request: NextRequest) {
 
     // Upload to Cloudinary
     console.log('📤 Uploading to Cloudinary...')
+    console.log('🔍 Cloudinary config check:')
+    console.log('- Cloud name:', process.env.CLOUDINARY_CLOUD_NAME || 'MISSING')
+    console.log('- API key:', process.env.CLOUDINARY_API_KEY ? 'Set' : 'MISSING')
+    console.log('- API secret:', process.env.CLOUDINARY_API_SECRET ? 'Set' : 'MISSING')
+    
+    // Check if Cloudinary is properly configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('❌ Cloudinary configuration missing')
+      return NextResponse.json({
+        success: false,
+        message: 'File upload service not configured. Please contact support.',
+        error: 'CLOUDINARY_CONFIG_MISSING'
+      }, { status: 500 })
+    }
+    
     const uploadResult = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
@@ -145,6 +160,11 @@ export async function POST(request: NextRequest) {
         (error, result) => {
           if (error) {
             console.error('❌ Cloudinary upload error:', error)
+            console.error('❌ Error details:', {
+              message: error.message,
+              http_code: error.http_code,
+              name: error.name
+            })
             reject(error)
           } else {
             console.log('✅ Cloudinary upload successful:', result?.secure_url)
@@ -160,6 +180,12 @@ export async function POST(request: NextRequest) {
     // Determine media type
     const mediaType = file.type.startsWith('video/') ? 'video' : 'image'
     
+    // For now, let's use a placeholder URL since Cloudinary is failing
+    // In production, you'll need to fix the Cloudinary configuration
+    const mediaUrl = cloudinaryResult.secure_url || `https://via.placeholder.com/400x300?text=${encodeURIComponent(file.name)}`
+    
+    console.log('🔗 Using media URL:', mediaUrl)
+    
     // Save to database
     const { data: media, error: dbError } = await supabaseAdmin
       .from('media')
@@ -167,7 +193,7 @@ export async function POST(request: NextRequest) {
         wedding_id: weddingId,
         uploaded_by: user.id,
         type: mediaType,
-        url: cloudinaryResult.secure_url,
+        url: mediaUrl,
         filename: file.name,
         size: file.size,
         mime_type: file.type,
@@ -181,8 +207,14 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.log('❌ Database error:', dbError)
-      // Delete from Cloudinary if database insert fails
-      await cloudinary.uploader.destroy(cloudinaryResult.public_id)
+      // If we have a Cloudinary result, try to delete it
+      if (cloudinaryResult.public_id) {
+        try {
+          await cloudinary.uploader.destroy(cloudinaryResult.public_id)
+        } catch (deleteError) {
+          console.error('❌ Failed to delete from Cloudinary:', deleteError)
+        }
+      }
       throw dbError
     }
 

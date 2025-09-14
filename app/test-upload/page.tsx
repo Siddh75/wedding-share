@@ -57,6 +57,19 @@ export default function TestUpload() {
     }
   }
 
+  const testEnv = async () => {
+    try {
+      const response = await fetch('/api/debug/env')
+      const data = await response.json()
+      console.log('🔧 Environment check:', data)
+      setResult({
+        environment: data
+      })
+    } catch (error) {
+      console.error('❌ Environment test error:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -68,6 +81,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Test Authentication
+          </button>
+          
+          <button
+            onClick={testEnv}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Check Environment Variables
           </button>
           
           <button
