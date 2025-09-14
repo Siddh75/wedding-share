@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import MediaUpload from '../../../components/MediaUpload'
-import MediaGallery from '../../../components/MediaGallery'
-import GuestManagement from '../../../components/GuestManagement'
+import MediaUpload from '../../components/MediaUpload'
+import MediaGallery from '../../components/MediaGallery'
+import GuestManagement from '../../components/GuestManagement'
 import { Upload, Image, Users, Calendar, MapPin, Camera, X, Settings } from 'lucide-react'
 
 interface WeddingGalleryProps {
