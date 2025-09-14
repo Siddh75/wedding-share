@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Media Upload API Debug:')
     console.log('- Request method:', request.method)
     console.log('- Request URL:', request.url)
+    console.log('- Timestamp:', new Date().toISOString())
     
     // Debug cookies
     const cookies = request.cookies
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
       console.log('- Session token length:', sessionToken.length)
     }
 
+    console.log('🔍 Step 1: Getting user from session...')
     let user = await getUserFromSession(request)
     console.log('- User from session:', user)
     
@@ -97,6 +99,7 @@ export async function POST(request: NextRequest) {
       role: user.role
     })
 
+    console.log('🔍 Step 2: Parsing form data...')
     const formData = await request.formData()
     const file = formData.get('file') as File
     const weddingId = formData.get('weddingId') as string
@@ -115,13 +118,15 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    console.log('🔍 Step 3: Checking wedding access...')
     // Check if user has access to this wedding
-    const { data: wedding } = await supabaseAdmin
+    const { data: wedding, error: weddingError } = await supabaseAdmin
       .from('weddings')
       .select('id, super_admin_id, wedding_admin_ids')
       .eq('id', weddingId)
       .single()
 
+    console.log('- Wedding query result:', { wedding, weddingError })
     console.log('- Wedding data:', wedding)
 
     if (!wedding) {
@@ -274,11 +279,19 @@ export async function POST(request: NextRequest) {
       message: error instanceof Error ? error.message : 'Unknown error'
     })
     
+    // Return more detailed error information
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorName = error instanceof Error ? error.name : 'Unknown'
+    
     return NextResponse.json({ 
       success: false, 
       message: 'Failed to upload media',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      details: process.env.NODE_ENV === 'development' ? error : undefined
+      error: errorMessage,
+      errorType: errorName,
+      details: {
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      }
     }, { status: 500 })
   }
 }
