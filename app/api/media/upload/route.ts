@@ -246,9 +246,18 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Media upload error:', error)
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('❌ Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      cause: error instanceof Error ? error.cause : undefined
+    })
+    
     return NextResponse.json({ 
       success: false, 
-      message: 'Failed to upload media' 
+      message: 'Failed to upload media',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? error : undefined
     }, { status: 500 })
   }
 }

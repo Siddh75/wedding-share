@@ -19,6 +19,12 @@ export default function TestUpload() {
       formData.append('description', 'Test upload')
 
       console.log('🧪 Testing upload API...')
+      console.log('🧪 File details:', {
+        name: testFile.name,
+        size: testFile.size,
+        type: testFile.type
+      })
+      console.log('🧪 Wedding ID:', '0841b34a-d327-4f87-8a42-b07050468ded')
       
       const response = await fetch('/api/media/upload', {
         method: 'POST',
@@ -26,17 +32,23 @@ export default function TestUpload() {
         credentials: 'include'
       })
 
+      console.log('📥 Response status:', response.status)
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()))
+
       const data = await response.json()
       console.log('📥 Upload response:', data)
       
       setResult({
         status: response.status,
-        data: data
+        statusText: response.statusText,
+        data: data,
+        headers: Object.fromEntries(response.headers.entries())
       })
     } catch (error) {
       console.error('❌ Test upload error:', error)
       setResult({
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
       })
     } finally {
       setLoading(false)
@@ -133,6 +145,24 @@ export default function TestUpload() {
     }
   }
 
+  const testWedding = async () => {
+    try {
+      const response = await fetch('/api/weddings/0841b34a-d327-4f87-8a42-b07050468ded', {
+        credentials: 'include'
+      })
+      const data = await response.json()
+      console.log('💒 Wedding test response:', data)
+      setResult({
+        wedding: {
+          status: response.status,
+          data: data
+        }
+      })
+    } catch (error) {
+      console.error('❌ Wedding test error:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-2xl mx-auto">
@@ -172,6 +202,13 @@ export default function TestUpload() {
             className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700"
           >
             Test Cloudinary Connection
+          </button>
+          
+          <button
+            onClick={testWedding}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          >
+            Test Wedding Access
           </button>
           
           <button
