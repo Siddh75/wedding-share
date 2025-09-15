@@ -3,11 +3,21 @@ import { supabase, supabaseAdmin } from '@/app/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔍 Confirm wedding signup API called')
     const body = await request.json()
     const { token, email, name, password, weddingData } = body
 
+    console.log('🔍 Request data:', {
+      token: token ? token.substring(0, 8) + '...' : null,
+      email,
+      name,
+      password: password ? '***' : null,
+      weddingData: weddingData ? weddingData.substring(0, 50) + '...' : null
+    })
+
     // Validate required fields
     if (!token || !email || !name || !password) {
+      console.log('❌ Missing required fields:', { token: !!token, email: !!email, name: !!name, password: !!password })
       return NextResponse.json(
         { success: false, message: 'All fields are required' },
         { status: 400 }
@@ -30,6 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the temporary user record
+    console.log('🔍 Looking up temporary user with token:', token.substring(0, 8) + '...')
     const { data: tempUser, error: userError } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -37,7 +48,13 @@ export async function POST(request: NextRequest) {
       .eq('email', email)
       .single()
 
+    console.log('🔍 User lookup result:', { 
+      user: tempUser ? { id: tempUser.id, email: tempUser.email, role: tempUser.role } : null, 
+      error: userError 
+    })
+
     if (userError || !tempUser) {
+      console.log('❌ User not found or error:', userError)
       return NextResponse.json(
         { success: false, message: 'Invalid or expired confirmation link' },
         { status: 400 }
@@ -45,6 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase Auth user
+    console.log('🔍 Creating Supabase Auth user for:', email)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -53,6 +71,11 @@ export async function POST(request: NextRequest) {
         name,
         role: 'admin'
       }
+    })
+
+    console.log('🔍 Auth creation result:', { 
+      authData: authData ? { id: authData.user?.id, email: authData.user?.email } : null, 
+      error: authError 
     })
 
     if (authError) {
@@ -64,6 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the user record with the Supabase Auth user ID
+    console.log('🔍 Updating user record with auth ID:', authData.user.id)
     const { data: user, error: updateError } = await supabaseAdmin
       .from('users')
       .update({
@@ -74,6 +98,11 @@ export async function POST(request: NextRequest) {
       .eq('id', token)
       .select()
       .single()
+
+    console.log('🔍 User update result:', { 
+      user: user ? { id: user.id, email: user.email, name: user.name } : null, 
+      error: updateError 
+    })
 
     if (updateError) {
       console.error('❌ Error updating user:', updateError)
@@ -91,6 +120,15 @@ export async function POST(request: NextRequest) {
       console.log('💒 Creating wedding with data:', decodedWeddingData)
       const code = `${decodedWeddingData.name.replace(/\s+/g, '').toUpperCase()}${Date.now().toString().slice(-4)}`
       
+      console.log('🔍 Wedding insert data:', {
+        name: decodedWeddingData.name,
+        description: decodedWeddingData.description || '',
+        date: decodedWeddingData.date,
+        location: decodedWeddingData.location,
+        code
+        // Removed created_by and is_active - columns don't exist
+      })
+      
       const { data: weddingResult, error: weddingError } = await supabaseAdmin
         .from('weddings')
         .insert({
@@ -98,12 +136,16 @@ export async function POST(request: NextRequest) {
           description: decodedWeddingData.description || '',
           date: decodedWeddingData.date,
           location: decodedWeddingData.location,
-          code,
-          created_by: user.id,
-          is_active: true
+          code
+          // Removed created_by and is_active - columns don't exist
         })
         .select()
         .single()
+
+      console.log('🔍 Wedding creation result:', { 
+        wedding: weddingResult ? { id: weddingResult.id, name: weddingResult.name } : null, 
+        error: weddingError 
+      })
 
       if (weddingError) {
         console.error('❌ Error creating wedding:', weddingError)
@@ -117,6 +159,8 @@ export async function POST(request: NextRequest) {
 
       wedding = weddingResult
       console.log('✅ Wedding created successfully:', wedding.id)
+    } else {
+      console.log('ℹ️ No wedding data provided, skipping wedding creation')
     }
 
     // Update user role to super_admin since they created the wedding
