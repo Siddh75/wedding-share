@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
             id: authUser.user.id,
             email: authUser.user.email!,
             name: authUser.user.user_metadata?.name || authUser.user.email!.split('@')[0],
-            role: 'guest', // Default role
-            email_confirmed: false // Will be set to true below
+            role: 'guest' // Default role
+            // Removed email_confirmed - column doesn't exist
           })
-          .select('id, email, email_confirmed, wedding_data')
+          .select('id, email, name, role')
           .single()
         
         if (createError) {
