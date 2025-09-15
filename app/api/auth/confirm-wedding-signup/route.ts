@@ -163,16 +163,9 @@ export async function POST(request: NextRequest) {
       console.log('ℹ️ No wedding data provided, skipping wedding creation')
     }
 
-    // Update user role to super_admin since they created the wedding
-    const { error: roleUpdateError } = await supabaseAdmin
-      .from('users')
-      .update({ role: 'super_admin' })
-      .eq('id', user.id)
-
-    if (roleUpdateError) {
-      console.error('❌ Error updating user role:', roleUpdateError)
-      // Continue even if role update fails
-    }
+    // Keep user role as admin - they don't need to be super_admin
+    // Admin users can create and manage their own wedding
+    console.log('✅ User role remains as admin - no need to change to super_admin')
 
     console.log('✅ Wedding signup completed successfully:', { user: user.id, wedding: wedding?.id || 'none' })
 
@@ -183,7 +176,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: wedding ? 'super_admin' : 'admin'
+        role: 'admin' // User remains as admin role
       },
       wedding: wedding ? {
         id: wedding.id,
