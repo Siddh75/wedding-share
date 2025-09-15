@@ -5,7 +5,7 @@ import { sendWelcomeEmail } from '@/app/lib/email-service'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, password, weddingId, role = 'guest', weddingData } = body
+    const { name, email, password, weddingId, role = 'admin', weddingData } = body
 
     // Validate required fields
     if (!name || !email || !password) {

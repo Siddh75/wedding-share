@@ -42,11 +42,12 @@ export async function GET(request: NextRequest) {
       `)
 
     // Filter based on user role
-    if (user.role === 'super_admin') {
+    if (user.role === 'super_admin' || user.role === 'application_admin') {
+      // Super admins and application admins can see all weddings they created
       query = query.eq('super_admin_id', user.id)
     } else if (user.role === 'admin') {
-      // Wedding admins can see weddings where they are in wedding_admin_ids
-      query = query.contains('wedding_admin_ids', [user.id])
+      // Admin users can see weddings they created (as super_admin) OR weddings they're assigned to (as wedding_admin)
+      query = query.or(`super_admin_id.eq.${user.id},wedding_admin_ids.cs.{${user.id}}`)
     } else {
       // Guests can only see weddings they're invited to
       query = query.eq('id', 'none') // This will return empty for now
@@ -87,12 +88,39 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (user.role !== 'super_admin') {
+    // Check if user has permission to create weddings
+    if (!['super_admin', 'admin', 'application_admin'].includes(user.role)) {
       return NextResponse.json(
-        { success: false, message: 'Only Super Admins can create weddings' },
+        { success: false, message: 'Only Super Admins, Admins, and Application Admins can create weddings' },
         { status: 403 }
       )
     }
+
+    // Check wedding creation limits
+    if (user.role === 'admin') {
+      // Admin users can only create 1 wedding
+      const { data: existingWeddings, error: countError } = await supabaseAdmin
+        .from('weddings')
+        .select('id')
+        .eq('super_admin_id', user.id)
+        .limit(1)
+
+      if (countError) {
+        console.error('Error checking existing weddings:', countError)
+        return NextResponse.json(
+          { success: false, message: 'Error checking wedding limits' },
+          { status: 500 }
+        )
+      }
+
+      if (existingWeddings && existingWeddings.length > 0) {
+        return NextResponse.json(
+          { success: false, message: 'Admin users can only create 1 wedding. You have already created a wedding.' },
+          { status: 403 }
+        )
+      }
+    }
+    // Super admins and application admins have no limits
 
     const body = await request.json()
     const { name, date, location, description, subscription_plan_id, adminEmail } = body
