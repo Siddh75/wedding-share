@@ -25,7 +25,16 @@ export async function POST(request: NextRequest) {
       .eq('id', token)
       .single()
 
-    console.log('🔍 User lookup result:', { user, userError })
+    console.log('🔍 User lookup result:', { 
+      user: user ? { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name, 
+        role: user.role,
+        email_confirmed: user.email_confirmed 
+      } : null, 
+      userError 
+    })
 
     if (userError || !user) {
       console.error('❌ User not found in users table:', userError)
@@ -98,6 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user to mark email as confirmed
+    console.log('🔍 Attempting to update email_confirmed for user:', user.id)
     const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({
@@ -107,6 +117,12 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('❌ Error updating user email_confirmed:', updateError)
+      console.error('❌ Update error details:', {
+        code: updateError.code,
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint
+      })
       // Continue anyway - try to confirm in Supabase Auth
     } else {
       console.log('✅ Email confirmed in database for:', email)
