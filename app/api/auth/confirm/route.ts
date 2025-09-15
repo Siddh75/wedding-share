@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Looking up user with ID:', token)
     let { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, email_confirmed, wedding_data')
+      .select('id, email, name, role')
       .eq('id', token)
       .single()
 
@@ -88,30 +88,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (user.email_confirmed) {
-      console.log('✅ Email already confirmed for:', email)
-      return NextResponse.json({
-        success: true,
-        message: 'Email already confirmed'
-      })
-    }
-
-    // Update user to mark email as confirmed
-    const { error: updateError } = await supabaseAdmin
-      .from('users')
-      .update({
-        email_confirmed: true,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
-
-    if (updateError) {
-      console.error('❌ Error updating user:', updateError)
-      return NextResponse.json(
-        { success: false, message: 'Failed to confirm email' },
-        { status: 500 }
-      )
-    }
+    // Since email_confirmed column doesn't exist, we'll just confirm in Supabase Auth
+    // and consider the email confirmed if the user exists and email matches
+    console.log('✅ Email confirmation successful for:', email)
 
     // Also confirm the email in Supabase Auth
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -126,21 +105,9 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Email confirmed successfully for:', email)
 
-    // Check if this is a wedding signup (has wedding_data)
-    let weddingData = null
-    if (user.wedding_data) {
-      try {
-        weddingData = JSON.parse(Buffer.from(user.wedding_data, 'base64').toString())
-        console.log('✅ Found wedding data:', weddingData)
-      } catch (error) {
-        console.error('❌ Error parsing wedding data:', error)
-      }
-    }
-
     return NextResponse.json({
       success: true,
-      message: 'Email confirmed successfully',
-      weddingData: weddingData
+      message: 'Email confirmed successfully'
     })
 
   } catch (error) {

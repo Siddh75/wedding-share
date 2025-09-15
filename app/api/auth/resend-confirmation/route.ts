@@ -14,10 +14,10 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 Resending confirmation email for:', email)
 
-    // Check if user exists and is not confirmed
+    // Check if user exists
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, email_confirmed')
+      .select('id, email, name, role')
       .eq('email', email)
       .single()
 
@@ -29,13 +29,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (user.email_confirmed) {
-      console.log('✅ Email already confirmed for:', email)
-      return NextResponse.json(
-        { success: false, message: 'Email is already confirmed' },
-        { status: 400 }
-      )
-    }
+    // Since email_confirmed column doesn't exist, we'll just send the confirmation email
+    // The user can click the link to confirm their email
+    console.log('📧 Sending confirmation email for:', email)
 
     // Send confirmation email
     try {
