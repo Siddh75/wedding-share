@@ -26,10 +26,12 @@ export default function EmailConfirmPage() {
       try {
         const token = searchParams.get('token')
         const email = searchParams.get('email')
+        const weddingDataParam = searchParams.get('weddingData')
 
         console.log('🔍 URL search params:', {
           token,
           email,
+          weddingDataParam: weddingDataParam ? weddingDataParam.substring(0, 50) + '...' : null,
           allParams: Object.fromEntries(searchParams.entries())
         })
 
@@ -42,7 +44,24 @@ export default function EmailConfirmPage() {
 
         console.log('🔍 Confirming email:', { token, email })
 
-        // Call our API to confirm the email and get wedding data
+        // Check if this is a wedding signup (has wedding data in URL)
+        if (weddingDataParam) {
+          try {
+            const decodedWeddingData = JSON.parse(Buffer.from(weddingDataParam, 'base64').toString())
+            console.log('💒 Decoded wedding data from URL:', decodedWeddingData)
+            setWeddingData(decodedWeddingData)
+            setStatus('form')
+            setMessage('Please complete your account setup')
+            return
+          } catch (error) {
+            console.error('❌ Error decoding wedding data from URL:', error)
+            setStatus('error')
+            setMessage('Invalid wedding data in confirmation link')
+            return
+          }
+        }
+
+        // Regular email confirmation (no wedding data)
         const response = await fetch('/api/auth/confirm', {
           method: 'POST',
           headers: {
@@ -61,21 +80,13 @@ export default function EmailConfirmPage() {
         }
 
         if (data.success) {
-          if (data.weddingData) {
-            // This is a wedding signup confirmation - show the account creation form
-            setWeddingData(data.weddingData)
-            setStatus('form')
-            setMessage('Please complete your account setup')
-          } else {
-            // Regular email confirmation
-            setStatus('success')
-            setMessage('Email confirmed successfully! You can now sign in.')
-            
-            // Redirect to sign in page after 3 seconds
-            setTimeout(() => {
-              router.push('/auth/signin')
-            }, 3000)
-          }
+          setStatus('success')
+          setMessage('Email confirmed successfully! You can now sign in.')
+          
+          // Redirect to sign in page after 3 seconds
+          setTimeout(() => {
+            router.push('/auth/signin')
+          }, 3000)
         } else {
           setStatus('error')
           setMessage(data.message || 'Failed to confirm email')
@@ -124,7 +135,7 @@ export default function EmailConfirmPage() {
           email: searchParams.get('email'),
           name: userData.name,
           password: userData.password,
-          weddingData: weddingData
+          weddingData: searchParams.get('weddingData')
         }),
       })
 
