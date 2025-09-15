@@ -125,8 +125,8 @@ export async function POST(request: NextRequest) {
         description: decodedWeddingData.description || '',
         date: decodedWeddingData.date,
         location: decodedWeddingData.location,
-        code
-        // Removed created_by and is_active - columns don't exist
+        code,
+        super_admin_id: user.id
       })
       
       const { data: weddingResult, error: weddingError } = await supabaseAdmin
@@ -136,8 +136,8 @@ export async function POST(request: NextRequest) {
           description: decodedWeddingData.description || '',
           date: decodedWeddingData.date,
           location: decodedWeddingData.location,
-          code
-          // Removed created_by and is_active - columns don't exist
+          code,
+          super_admin_id: user.id  // Required field - assign user as super admin
         })
         .select()
         .single()
