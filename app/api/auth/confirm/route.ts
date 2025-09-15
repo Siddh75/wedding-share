@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Looking up user with ID:', token)
     let { data: user, error: userError } = await supabaseAdmin
       .from('users')
-      .select('id, email, name, role')
+      .select('id, email, name, role, email_confirmed')
       .eq('id', token)
       .single()
 
@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
             id: authUser.user.id,
             email: authUser.user.email!,
             name: authUser.user.user_metadata?.name || authUser.user.email!.split('@')[0],
-            role: 'guest' // Default role
-            // Removed email_confirmed - column doesn't exist
+            role: 'guest', // Default role
+            email_confirmed: true // Mark as confirmed since they're coming from Supabase Auth
           })
-          .select('id, email, name, role')
+          .select('id, email, name, role, email_confirmed')
           .single()
         
         if (createError) {
@@ -88,9 +88,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Since email_confirmed column doesn't exist, we'll just confirm in Supabase Auth
-    // and consider the email confirmed if the user exists and email matches
-    console.log('✅ Email confirmation successful for:', email)
+    // Check if email is already confirmed
+    if (user.email_confirmed) {
+      console.log('✅ Email already confirmed for:', email)
+      return NextResponse.json({
+        success: true,
+        message: 'Email already confirmed'
+      })
+    }
+
+    // Update user to mark email as confirmed
+    const { error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({
+        email_confirmed: true
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('❌ Error updating user email_confirmed:', updateError)
+      // Continue anyway - try to confirm in Supabase Auth
+    } else {
+      console.log('✅ Email confirmed in database for:', email)
+    }
 
     // Also confirm the email in Supabase Auth
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
